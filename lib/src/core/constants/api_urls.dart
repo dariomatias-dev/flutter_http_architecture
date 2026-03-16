@@ -1,3 +1,3 @@
 abstract class ApiUrls {
-  static const jsonplaceholder = 'https://jsonplaceholder.typicode.com';
+  static const dummyjson = 'https://dummyjson.com';
 }
