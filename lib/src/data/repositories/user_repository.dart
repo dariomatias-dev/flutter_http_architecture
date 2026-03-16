@@ -7,21 +7,15 @@ class UserRepository {
 
   UserRepository({required HttpClient httpClient}) : _httpClient = httpClient;
 
-  Future<UserModel?> createUser(UserModel user) async {
-    final response = await _httpClient.post<Map<String, dynamic>>(
-      '/users',
-      data: user.toJson(),
-    );
-
-    if (response.data == null) return null;
-
-    return UserModel.fromJson(response.data!);
-  }
-
   Future<List<UserModel>> getUsers() async {
-    final response = await _httpClient.get<List>('/users');
+    final response = await _httpClient.get<Map<String, dynamic>>('/users');
 
-    final data = response.data ?? [];
+    if (response.data == null || response.data!['users'] == null) {
+      return <UserModel>[];
+    }
+
+    final data = response.data!['users'] as List;
+
     return data.map((json) => UserModel.fromJson(json)).toList();
   }
 
@@ -30,6 +24,6 @@ class UserRepository {
 
     if (response.data == null) return null;
 
-    return UserModel.fromJson(response.data!);
+    return UserModel.fromJson(response.data!['data']);
   }
 }
