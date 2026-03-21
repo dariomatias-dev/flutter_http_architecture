@@ -42,7 +42,15 @@ class _HomeScreenState extends State<HomeScreen> {
     setState(() => _isLoading = true);
 
     final path = '/status/$_selectedStatus';
-    final code = await _repository.request(path, method: _selectedMethod);
+
+    final code = await (switch (_selectedMethod) {
+      'POST' => _repository.post(path),
+      'PUT' => _repository.put(path),
+      'PATCH' => _repository.patch(path),
+      'DELETE' => _repository.delete(path),
+      'OPTIONS' => _repository.options(path),
+      _ => _repository.get(path),
+    });
 
     setState(() {
       _result = 'Path: $path\nMethod: $_selectedMethod\nCode: $code';
