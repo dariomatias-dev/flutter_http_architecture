@@ -103,53 +103,53 @@ class _HomeScreenState extends State<HomeScreen> {
             const Text(
               'Configuration',
               style: TextStyle(
+                color: Colors.grey,
                 fontSize: 12.0,
                 fontWeight: FontWeight.bold,
-                color: Colors.grey,
               ),
             ),
             const SizedBox(height: 24.0),
             DropdownButtonFormField<String>(
-              value: _selectedMethod,
+              initialValue: _selectedMethod,
               decoration: InputDecoration(
                 labelText: 'METHOD',
                 labelStyle: const TextStyle(fontSize: 10.0, letterSpacing: 1.0),
                 filled: true,
                 fillColor: Colors.grey[100.0.toInt()],
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8.0),
                   borderSide: BorderSide.none,
+                  borderRadius: BorderRadius.circular(8.0),
                 ),
               ),
-              items: _methods
-                  .map((m) => DropdownMenuItem(value: m, child: Text(m)))
-                  .toList(),
+              items: _methods.map((method) {
+                return DropdownMenuItem(value: method, child: Text(method));
+              }).toList(),
               onChanged: _isLoading
                   ? null
-                  : (val) => setState(() => _selectedMethod = val!),
+                  : (value) => setState(() => _selectedMethod = value!),
             ),
             const SizedBox(height: 16.0),
             DropdownButtonFormField<int>(
-              value: _selectedStatus,
+              initialValue: _selectedStatus,
               decoration: InputDecoration(
                 labelText: 'STATUS CODE',
                 labelStyle: const TextStyle(fontSize: 10.0, letterSpacing: 1.0),
                 filled: true,
                 fillColor: Colors.grey[100.0.toInt()],
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8.0),
                   borderSide: BorderSide.none,
+                  borderRadius: BorderRadius.circular(8.0),
                 ),
               ),
-              items: _statusCodes
-                  .map(
-                    (c) =>
-                        DropdownMenuItem(value: c, child: Text(c.toString())),
-                  )
-                  .toList(),
+              items: _statusCodes.map((statusCode) {
+                return DropdownMenuItem(
+                  value: statusCode,
+                  child: Text(statusCode.toString()),
+                );
+              }).toList(),
               onChanged: _isLoading
                   ? null
-                  : (val) => setState(() => _selectedStatus = val!),
+                  : (value) => setState(() => _selectedStatus = value!),
             ),
             const SizedBox(height: 32.0),
             SizedBox(
@@ -188,9 +188,9 @@ class _HomeScreenState extends State<HomeScreen> {
               const Text(
                 'RESPONSE',
                 style: TextStyle(
+                  color: Colors.grey,
                   fontSize: 12.0,
                   fontWeight: FontWeight.bold,
-                  color: Colors.grey,
                 ),
               ),
               const SizedBox(height: 16.0),
@@ -204,10 +204,10 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: Text(
                   _result,
                   style: const TextStyle(
-                    fontFamily: 'monospace',
-                    fontSize: 13.0,
-                    height: 1.6,
                     color: Colors.black87,
+                    fontSize: 13.0,
+                    fontFamily: 'monospace',
+                    height: 1.6,
                   ),
                 ),
               ),
