@@ -141,4 +141,20 @@ class DioHttpClient implements HttpClient {
       headers: headers,
     );
   }
+
+  @override
+  Future<ApiResponse<T?>> options<T>(
+    String path, {
+    Object? data,
+    Map<String, dynamic>? queryParameters,
+    Map<String, String>? headers,
+  }) {
+    return _request<T>(
+      'OPTIONS',
+      path,
+      data: data,
+      queryParameters: queryParameters,
+      headers: headers,
+    );
+  }
 }

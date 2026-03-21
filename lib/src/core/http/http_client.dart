@@ -41,4 +41,11 @@ abstract class HttpClient {
     Map<String, dynamic>? queryParameters,
     Map<String, String>? headers,
   });
+
+  Future<ApiResponse<T?>> options<T>(
+    String path, {
+    Object? data,
+    Map<String, dynamic>? queryParameters,
+    Map<String, String>? headers,
+  });
 }
