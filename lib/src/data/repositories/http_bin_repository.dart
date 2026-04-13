@@ -1,4 +1,4 @@
-import 'package:flutter_http_architecture/src/core/http/http_client.dart';
+import 'package:flutter_http_architecture/src/core/http/client/http_client.dart';
 
 abstract class IHttpBinRepository {
   Future<int> get(String path);
@@ -24,7 +24,7 @@ class HttpBinRepository implements IHttpBinRepository {
   Future<int> get(String path) async {
     final response = await _httpClient.get<Map<String, dynamic>>(path);
 
-    return response.statusCode ?? 0.0.toInt();
+    return response.statusCode ?? 0;
   }
 
   @override
@@ -34,7 +34,7 @@ class HttpBinRepository implements IHttpBinRepository {
       data: <String, dynamic>{},
     );
 
-    return response.statusCode ?? 0.0.toInt();
+    return response.statusCode ?? 0;
   }
 
   @override
@@ -44,7 +44,7 @@ class HttpBinRepository implements IHttpBinRepository {
       data: <String, dynamic>{},
     );
 
-    return response.statusCode ?? 0.0.toInt();
+    return response.statusCode ?? 0;
   }
 
   @override
@@ -54,20 +54,20 @@ class HttpBinRepository implements IHttpBinRepository {
       data: <String, dynamic>{},
     );
 
-    return response.statusCode ?? 0.0.toInt();
+    return response.statusCode ?? 0;
   }
 
   @override
   Future<int> delete(String path) async {
     final response = await _httpClient.delete<Map<String, dynamic>>(path);
 
-    return response.statusCode ?? 0.0.toInt();
+    return response.statusCode ?? 0;
   }
 
   @override
   Future<int> options(String path) async {
     final response = await _httpClient.options<Map<String, dynamic>>(path);
 
-    return response.statusCode ?? 0.0.toInt();
+    return response.statusCode ?? 0;
   }
 }

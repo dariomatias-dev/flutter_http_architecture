@@ -5,8 +5,8 @@ import 'package:provider/single_child_widget.dart';
 import 'package:flutter_http_architecture/src/app_widget.dart';
 
 import 'package:flutter_http_architecture/src/core/constants/api_urls.dart';
-import 'package:flutter_http_architecture/src/core/http/dio_http_client.dart';
-import 'package:flutter_http_architecture/src/core/http/network_config.dart';
+import 'package:flutter_http_architecture/src/core/http/client/dio_http_client.dart';
+import 'package:flutter_http_architecture/src/core/http/config/network_config.dart';
 
 import 'package:flutter_http_architecture/src/data/repositories/http_bin_repository.dart';
 

@@ -1,11 +1,12 @@
 import 'package:dio/dio.dart';
 
-import 'package:flutter_http_architecture/src/core/http/api_response.dart';
-import 'package:flutter_http_architecture/src/core/http/http_client.dart';
-import 'package:flutter_http_architecture/src/core/http/http_request_options.dart';
+import 'package:flutter_http_architecture/src/core/http/client/http_client.dart';
+import 'package:flutter_http_architecture/src/core/http/config/network_config.dart';
+import 'package:flutter_http_architecture/src/core/http/executor/request_executor.dart';
 import 'package:flutter_http_architecture/src/core/http/interceptors/logging_interceptor.dart';
-import 'package:flutter_http_architecture/src/core/http/network_config.dart';
-import 'package:flutter_http_architecture/src/core/http/request_executor.dart';
+import 'package:flutter_http_architecture/src/core/http/models/api_response.dart';
+import 'package:flutter_http_architecture/src/core/http/options/http_request_options.dart';
+import 'package:flutter_http_architecture/src/core/http/tokens/http_cancel_token.dart';
 import 'package:flutter_http_architecture/src/core/type/progress_callback_http.dart';
 
 class DioCancelToken implements HttpCancelToken {

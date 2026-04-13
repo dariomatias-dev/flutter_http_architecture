@@ -1,7 +1,7 @@
 import 'dart:io';
 import 'package:dio/dio.dart';
 
-import 'package:flutter_http_architecture/src/core/http/multipart/dio_multipart.dart';
+import 'package:flutter_http_architecture/src/core/http/multipart/dio_http_multipart.dart';
 import 'package:flutter_http_architecture/src/core/http/multipart/http_multipart.dart';
 
 class MultipartHelper {
@@ -22,6 +22,6 @@ class MultipartHelper {
       }
     }
 
-    return DioMultipart(FormData.fromMap(map));
+    return DioHttpMultipart(FormData.fromMap(map));
   }
 }

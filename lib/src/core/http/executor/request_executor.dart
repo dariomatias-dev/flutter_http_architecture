@@ -2,7 +2,7 @@ import 'dart:io';
 
 import 'package:dio/dio.dart';
 
-import 'package:flutter_http_architecture/src/core/http/api_response.dart';
+import 'package:flutter_http_architecture/src/core/http/models/api_response.dart';
 import 'package:flutter_http_architecture/src/core/http/errors/http_error.dart';
 import 'package:flutter_http_architecture/src/core/http/errors/http_error_type.dart';
 
