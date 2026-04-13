@@ -2,19 +2,32 @@ import 'package:dio/dio.dart';
 
 import 'package:flutter_http_architecture/src/core/http/api_response.dart';
 import 'package:flutter_http_architecture/src/core/http/http_client.dart';
+import 'package:flutter_http_architecture/src/core/http/http_request_options.dart';
 import 'package:flutter_http_architecture/src/core/http/interceptors/logging_interceptor.dart';
 import 'package:flutter_http_architecture/src/core/http/network_config.dart';
 import 'package:flutter_http_architecture/src/core/http/request_executor.dart';
 import 'package:flutter_http_architecture/src/core/type/progress_callback_http.dart';
 
+class DioCancelToken implements HttpCancelToken {
+  final CancelToken _token = CancelToken();
+
+  CancelToken get raw => _token;
+
+  @override
+  void cancel([String? reason]) {
+    _token.cancel(reason);
+  }
+}
+
 class DioHttpClient implements HttpClient {
-  DioHttpClient({required NetworkConfig config}) {
+  DioHttpClient({required NetworkConfig config})
+    : _defaultHeaders = Map.unmodifiable(config.defaultHeaders) {
     _dio = Dio(
       BaseOptions(
         baseUrl: config.baseUrl ?? '',
         connectTimeout: config.connectTimeout,
         receiveTimeout: config.receiveTimeout,
-        headers: config.defaultHeaders,
+        headers: _defaultHeaders,
       ),
     );
 
@@ -25,29 +38,51 @@ class DioHttpClient implements HttpClient {
 
   late final Dio _dio;
   late final RequestExecutor _executor;
+  final Map<String, dynamic> _defaultHeaders;
+
+  Options _mapToDioOptions(String method, HttpRequestOptions? options) {
+    final mergedHeaders = {
+      ..._defaultHeaders,
+      if (options?.headers != null) ...options!.headers!,
+    };
+
+    return Options(
+      method: method,
+      headers: Map.unmodifiable(mergedHeaders),
+      sendTimeout: options?.sendTimeout,
+      receiveTimeout: options?.receiveTimeout,
+      contentType: options?.contentType,
+      extra: options?.extra,
+    );
+  }
+
+  CancelToken? _extractCancelToken(HttpCancelToken? token) {
+    if (token is DioCancelToken) {
+      return token.raw;
+    }
+
+    return null;
+  }
 
   Future<ApiResponse<T?>> _request<T>(
     String method,
     String path, {
     Object? data,
     Map<String, dynamic>? queryParameters,
-    Map<String, String>? headers,
+    HttpRequestOptions? options,
     ProgressCallbackHttp? onSendProgress,
     ProgressCallbackHttp? onReceiveProgress,
+    HttpCancelToken? cancelToken,
   }) {
-    final combinedHeaders = {
-      ..._dio.options.headers,
-      if (headers != null) ...headers,
-    };
-
     return _executor.execute(() {
       return _dio.request<T>(
         path,
         data: data,
         queryParameters: queryParameters,
-        options: Options(method: method, headers: combinedHeaders),
+        options: _mapToDioOptions(method, options),
         onSendProgress: onSendProgress,
         onReceiveProgress: onReceiveProgress,
+        cancelToken: _extractCancelToken(cancelToken),
       );
     });
   }
@@ -56,13 +91,15 @@ class DioHttpClient implements HttpClient {
   Future<ApiResponse<T?>> get<T>(
     String path, {
     Map<String, dynamic>? queryParameters,
-    Map<String, String>? headers,
+    HttpRequestOptions? options,
+    HttpCancelToken? cancelToken,
   }) {
     return _request<T>(
       'GET',
       path,
       queryParameters: queryParameters,
-      headers: headers,
+      options: options,
+      cancelToken: cancelToken,
     );
   }
 
@@ -71,18 +108,20 @@ class DioHttpClient implements HttpClient {
     String path, {
     Object? data,
     Map<String, dynamic>? queryParameters,
-    Map<String, String>? headers,
+    HttpRequestOptions? options,
     ProgressCallbackHttp? onSendProgress,
     ProgressCallbackHttp? onReceiveProgress,
+    HttpCancelToken? cancelToken,
   }) {
     return _request<T>(
       'POST',
       path,
       data: data,
       queryParameters: queryParameters,
-      headers: headers,
+      options: options,
       onSendProgress: onSendProgress,
       onReceiveProgress: onReceiveProgress,
+      cancelToken: cancelToken,
     );
   }
 
@@ -91,18 +130,20 @@ class DioHttpClient implements HttpClient {
     String path, {
     Object? data,
     Map<String, dynamic>? queryParameters,
-    Map<String, String>? headers,
+    HttpRequestOptions? options,
     ProgressCallbackHttp? onSendProgress,
     ProgressCallbackHttp? onReceiveProgress,
+    HttpCancelToken? cancelToken,
   }) {
     return _request<T>(
       'PUT',
       path,
       data: data,
       queryParameters: queryParameters,
-      headers: headers,
+      options: options,
       onSendProgress: onSendProgress,
       onReceiveProgress: onReceiveProgress,
+      cancelToken: cancelToken,
     );
   }
 
@@ -111,18 +152,20 @@ class DioHttpClient implements HttpClient {
     String path, {
     Object? data,
     Map<String, dynamic>? queryParameters,
-    Map<String, String>? headers,
+    HttpRequestOptions? options,
     ProgressCallbackHttp? onSendProgress,
     ProgressCallbackHttp? onReceiveProgress,
+    HttpCancelToken? cancelToken,
   }) {
     return _request<T>(
       'PATCH',
       path,
       data: data,
       queryParameters: queryParameters,
-      headers: headers,
+      options: options,
       onSendProgress: onSendProgress,
       onReceiveProgress: onReceiveProgress,
+      cancelToken: cancelToken,
     );
   }
 
@@ -131,14 +174,16 @@ class DioHttpClient implements HttpClient {
     String path, {
     Object? data,
     Map<String, dynamic>? queryParameters,
-    Map<String, String>? headers,
+    HttpRequestOptions? options,
+    HttpCancelToken? cancelToken,
   }) {
     return _request<T>(
       'DELETE',
       path,
       data: data,
       queryParameters: queryParameters,
-      headers: headers,
+      options: options,
+      cancelToken: cancelToken,
     );
   }
 
@@ -147,14 +192,16 @@ class DioHttpClient implements HttpClient {
     String path, {
     Object? data,
     Map<String, dynamic>? queryParameters,
-    Map<String, String>? headers,
+    HttpRequestOptions? options,
+    HttpCancelToken? cancelToken,
   }) {
     return _request<T>(
       'OPTIONS',
       path,
       data: data,
       queryParameters: queryParameters,
-      headers: headers,
+      options: options,
+      cancelToken: cancelToken,
     );
   }
 }
