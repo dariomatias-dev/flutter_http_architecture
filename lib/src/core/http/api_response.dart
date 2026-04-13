@@ -1,15 +1,17 @@
+import 'package:flutter_http_architecture/src/core/http/errors/http_error.dart';
+
 class ApiResponse<T> {
   final T? data;
   final int? statusCode;
   final Map<String, dynamic>? headers;
-  final String? errorMessage;
-  final StackTrace? stackTrace;
+  final HttpError? error;
 
   const ApiResponse({
     required this.data,
     this.statusCode,
     this.headers,
-    this.errorMessage,
-    this.stackTrace,
+    this.error,
   });
+
+  bool get isSuccess => error == null;
 }
