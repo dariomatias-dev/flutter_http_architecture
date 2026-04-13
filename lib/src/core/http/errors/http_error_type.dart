@@ -1,0 +1,15 @@
+enum HttpErrorType {
+  network,
+  timeout,
+  cancel,
+  unauthorized,
+  forbidden,
+  notFound,
+  badRequest,
+  conflict,
+  validation,
+  tooManyRequests,
+  server,
+  unknown,
+  security,
+}
