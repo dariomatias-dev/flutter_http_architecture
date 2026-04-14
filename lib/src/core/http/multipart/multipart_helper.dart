@@ -1,4 +1,6 @@
 import 'dart:io';
+import 'dart:typed_data';
+
 import 'package:dio/dio.dart';
 
 import 'package:flutter_http_architecture/src/core/http/multipart/dio_http_multipart.dart';
@@ -17,6 +19,10 @@ class MultipartHelper {
         map[entry.key] = await Future.wait(
           value.map((file) => MultipartFile.fromFile(file.path)),
         );
+      } else if (value is Uint8List) {
+        map[entry.key] = MultipartFile.fromBytes(value);
+      } else if (value is String && File(value).existsSync()) {
+        map[entry.key] = await MultipartFile.fromFile(value);
       } else {
         map[entry.key] = value;
       }
