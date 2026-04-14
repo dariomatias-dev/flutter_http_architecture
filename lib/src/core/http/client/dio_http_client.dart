@@ -15,6 +15,9 @@ class DioCancelToken implements HttpCancelToken {
   CancelToken get raw => _token;
 
   @override
+  bool get isCancelled => _token.isCancelled;
+
+  @override
   void cancel([String? reason]) {
     _token.cancel(reason);
   }
@@ -22,7 +25,7 @@ class DioCancelToken implements HttpCancelToken {
 
 class DioHttpClient implements HttpClient {
   DioHttpClient({required NetworkConfig config})
-    : _defaultHeaders = Map.unmodifiable(config.defaultHeaders) {
+    : _defaultHeaders = config.defaultHeaders {
     _dio = Dio(
       BaseOptions(
         baseUrl: config.baseUrl ?? '',
@@ -49,7 +52,7 @@ class DioHttpClient implements HttpClient {
 
     return Options(
       method: method,
-      headers: Map.unmodifiable(mergedHeaders),
+      headers: mergedHeaders,
       sendTimeout: options?.sendTimeout,
       receiveTimeout: options?.receiveTimeout,
       contentType: options?.contentType,
@@ -75,17 +78,19 @@ class DioHttpClient implements HttpClient {
     ProgressCallbackHttp? onReceiveProgress,
     HttpCancelToken? cancelToken,
   }) {
-    return _executor.execute(() {
-      return _dio.request<T>(
-        path,
-        data: data,
-        queryParameters: queryParameters,
-        options: _mapToDioOptions(method, options),
-        onSendProgress: onSendProgress,
-        onReceiveProgress: onReceiveProgress,
-        cancelToken: _extractCancelToken(cancelToken),
-      );
-    });
+    return _executor.execute(
+      request: () {
+        return _dio.request<T>(
+          path,
+          data: data,
+          queryParameters: queryParameters,
+          options: _mapToDioOptions(method, options),
+          onSendProgress: onSendProgress,
+          onReceiveProgress: onReceiveProgress,
+          cancelToken: _extractCancelToken(cancelToken),
+        );
+      },
+    );
   }
 
   @override

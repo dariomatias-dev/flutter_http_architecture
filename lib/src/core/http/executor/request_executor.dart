@@ -7,9 +7,9 @@ import 'package:flutter_http_architecture/src/core/http/errors/http_error.dart';
 import 'package:flutter_http_architecture/src/core/http/errors/http_error_type.dart';
 
 class RequestExecutor {
-  Future<ApiResponse<T?>> execute<T>(
-    Future<Response<T?>> Function() request,
-  ) async {
+  Future<ApiResponse<T?>> execute<T>({
+    required Future<Response<T?>> Function() request,
+  }) async {
     try {
       final response = await request();
 
