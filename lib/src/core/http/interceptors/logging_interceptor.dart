@@ -1,40 +1,171 @@
 import 'package:dio/dio.dart';
 import 'package:logger/logger.dart';
 
+import 'package:flutter_http_architecture/src/core/http/executor/request_context.dart';
+
 class LoggingInterceptor extends Interceptor {
-  final _logger = Logger();
+  final _logger = Logger(
+    printer: PrettyPrinter(
+      methodCount: 0,
+      errorMethodCount: 5,
+      lineLength: 120,
+      colors: true,
+      printEmojis: true,
+      dateTimeFormat: DateTimeFormat.onlyTimeAndSinceStart,
+    ),
+  );
+
+  String _formatContext(RequestContext context) {
+    return 'start=${context.startTime.toIso8601String()} | '
+        'retry=${context.retryCount} | '
+        'status=${context.statusCode ?? '-'} | '
+        'duration=${context.duration != null ? '${context.duration?.inMilliseconds}ms' : '-'}';
+  }
 
   @override
   void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
-    _logger.i('REQUEST [${options.method}] ${options.uri}');
-    _logger.i('HEADERS: ${options.headers}');
-    _logger.i('DATA: ${options.data}');
+    final context = RequestContext(
+      method: options.method,
+      path: options.path,
+      startTime: DateTime.now(),
+    );
+
+    options.extra['requestContext'] = context;
+
+    final buffer = StringBuffer();
+
+    buffer.writeln('┌───────────── HTTP REQUEST ─────────────');
+
+    buffer.writeln('│ ▶ REQUEST');
+    buffer.writeln('│   ${options.method} ${options.uri}');
+
+    buffer.writeln('│');
+    buffer.writeln('│ ▶ CONTEXT');
+    buffer.writeln('│   ${_formatContext(context)}');
+
+    buffer.writeln('│');
+    buffer.writeln('│ ▶ HEADERS');
+    buffer.writeln('│   ${options.headers}');
 
     if (options.queryParameters.isNotEmpty) {
-      _logger.i('QUERY: ${options.queryParameters}');
+      buffer.writeln('│');
+      buffer.writeln('│ ▶ QUERY');
+      buffer.writeln('│   ${options.queryParameters}');
     }
 
+    if (options.data != null) {
+      buffer.writeln('│');
+      buffer.writeln('│ ▶ BODY');
+      buffer.writeln('│   ${options.data}');
+    }
+
+    buffer.writeln('└────────────────────────────────────────');
+
+    _logger.i(buffer.toString());
     handler.next(options);
   }
 
   @override
   void onResponse(Response response, ResponseInterceptorHandler handler) {
-    _logger.i(
-      'RESPONSE [${response.statusCode}] ${response.requestOptions.uri}',
-    );
-    _logger.i('DATA: ${response.data}');
+    final context =
+        response.requestOptions.extra['requestContext'] as RequestContext?;
 
+    if (context != null) {
+      context.statusCode = response.statusCode;
+      context.duration = DateTime.now().difference(context.startTime);
+    }
+
+    final buffer = StringBuffer();
+
+    buffer.writeln('┌──────────── HTTP RESPONSE ─────────────');
+
+    buffer.writeln('│ ▶ RESPONSE');
+    buffer.writeln(
+      '│   ${response.requestOptions.method} ${response.requestOptions.uri}',
+    );
+    buffer.writeln('│   STATUS: ${response.statusCode}');
+
+    if (context != null) {
+      buffer.writeln('│');
+      buffer.writeln('│ ▶ CONTEXT');
+      buffer.writeln('│   ${_formatContext(context)}');
+
+      if (context.error != null) {
+        buffer.writeln('│');
+        buffer.writeln('│ ▶ ERROR');
+        buffer.writeln(
+          '│   ${context.error!.type} | ${context.error!.message}',
+        );
+      }
+    }
+
+    buffer.writeln('│');
+    buffer.writeln('│ ▶ HEADERS');
+    buffer.writeln('│   ${response.headers.map}');
+
+    buffer.writeln('│');
+    buffer.writeln('│ ▶ DATA');
+    buffer.writeln('│   ${response.data}');
+
+    buffer.writeln('└────────────────────────────────────────');
+
+    _logger.i(buffer.toString());
     handler.next(response);
   }
 
   @override
   void onError(DioException err, ErrorInterceptorHandler handler) {
-    _logger.e(
-      'ERROR [${err.requestOptions.uri}]',
-      error: err.error,
-      stackTrace: err.stackTrace,
-    );
+    final context =
+        err.requestOptions.extra['requestContext'] as RequestContext?;
 
+    if (context != null) {
+      context.statusCode = err.response?.statusCode;
+      context.duration = DateTime.now().difference(context.startTime);
+    }
+
+    final buffer = StringBuffer();
+
+    buffer.writeln('┌───────────── HTTP ERROR ──────────────');
+
+    buffer.writeln('│ ▶ REQUEST');
+    buffer.writeln(
+      '│   ${err.requestOptions.method} ${err.requestOptions.uri}',
+    );
+    buffer.writeln('│   STATUS: ${err.response?.statusCode}');
+
+    if (context != null) {
+      buffer.writeln('│');
+      buffer.writeln('│ ▶ CONTEXT');
+      buffer.writeln('│   ${_formatContext(context)}');
+
+      if (context.error != null) {
+        buffer.writeln('│');
+        buffer.writeln('│ ▶ ERROR');
+        buffer.writeln(
+          '│   ${context.error!.type} | ${context.error!.message}',
+        );
+      }
+    }
+
+    buffer.writeln('│');
+    buffer.writeln('│ ▶ HEADERS');
+    buffer.writeln('│   ${err.response?.headers.map}');
+
+    buffer.writeln('│');
+    buffer.writeln('│ ▶ DATA');
+    buffer.writeln('│   ${err.response?.data}');
+
+    buffer.writeln('│');
+    buffer.writeln('│ ▶ EXCEPTION');
+    buffer.writeln('│   ${err.error}');
+
+    buffer.writeln('│');
+    buffer.writeln('│ ▶ STACK');
+    buffer.writeln('│   ${err.stackTrace}');
+
+    buffer.writeln('└────────────────────────────────────────');
+
+    _logger.e(buffer.toString());
     handler.next(err);
   }
 }
