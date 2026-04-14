@@ -13,5 +13,6 @@ class ApiResponse<T> {
     this.error,
   });
 
-  bool get isSuccess => error == null;
+  bool get isSuccess =>
+      error == null && statusCode != null && statusCode! < 400;
 }
