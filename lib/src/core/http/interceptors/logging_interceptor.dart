@@ -5,34 +5,33 @@ class LoggingInterceptor extends Interceptor {
   final _logger = Logger();
 
   @override
-  void onRequest(options, handler) {
-    _logger.i(
-      'REQUEST [${options.method}] ${options.uri}',
-      error: options.data,
-    );
+  void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
+    _logger.i('REQUEST [${options.method}] ${options.uri}');
+    _logger.i('HEADERS: ${options.headers}');
+    _logger.i('DATA: ${options.data}');
 
     if (options.queryParameters.isNotEmpty) {
-      _logger.i('QUERY PARAMETERS: ${options.queryParameters}');
+      _logger.i('QUERY: ${options.queryParameters}');
     }
 
     handler.next(options);
   }
 
   @override
-  void onResponse(response, handler) {
+  void onResponse(Response response, ResponseInterceptorHandler handler) {
     _logger.i(
       'RESPONSE [${response.statusCode}] ${response.requestOptions.uri}',
-      error: response.data,
     );
+    _logger.i('DATA: ${response.data}');
 
     handler.next(response);
   }
 
   @override
-  void onError(err, handler) {
+  void onError(DioException err, ErrorInterceptorHandler handler) {
     _logger.e(
       'ERROR [${err.requestOptions.uri}]',
-      error: err,
+      error: err.error,
       stackTrace: err.stackTrace,
     );
 
