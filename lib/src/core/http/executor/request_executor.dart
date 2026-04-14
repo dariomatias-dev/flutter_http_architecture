@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:dio/dio.dart';
 
+import 'package:flutter_http_architecture/src/core/http/executor/request_context.dart';
 import 'package:flutter_http_architecture/src/core/http/models/api_response.dart';
 import 'package:flutter_http_architecture/src/core/http/errors/http_error.dart';
 import 'package:flutter_http_architecture/src/core/http/errors/http_error_type.dart';
@@ -9,32 +10,60 @@ import 'package:flutter_http_architecture/src/core/http/errors/http_error_type.d
 class RequestExecutor {
   Future<ApiResponse<T?>> execute<T>({
     required Future<Response<T?>> Function() request,
+    int maxRetries = 0,
   }) async {
-    try {
-      final response = await request();
+    RequestContext? context;
 
-      return ApiResponse<T?>(
-        data: response.data,
-        statusCode: response.statusCode,
-        headers: response.headers.map,
-      );
-    } on DioException catch (err) {
-      return ApiResponse<T?>(
-        data: null,
-        statusCode: err.response?.statusCode,
-        headers: err.response?.headers.map,
-        error: _mapDioError(err),
-      );
-    } catch (err, stackTrace) {
-      return ApiResponse<T?>(
-        data: null,
-        error: HttpError(
+    for (int attempt = 0; attempt <= maxRetries; attempt++) {
+      try {
+        final response = await request();
+
+        context =
+            response.requestOptions.extra['requestContext'] as RequestContext?;
+
+        if (context != null) {
+          context.retryCount = attempt;
+        }
+
+        return ApiResponse<T?>(
+          data: response.data,
+          statusCode: response.statusCode,
+          headers: response.headers.map,
+          error: null,
+          context: context,
+        );
+      } on DioException catch (err) {
+        context = err.requestOptions.extra['requestContext'] as RequestContext?;
+
+        final error = _mapDioError(err);
+
+        if (context != null) {
+          context.retryCount = attempt;
+          context.error = error;
+          context.statusCode = err.response?.statusCode;
+        }
+
+        if (attempt == maxRetries) {
+          return ApiResponse<T?>(
+            data: null,
+            statusCode: context?.statusCode,
+            headers: err.response?.headers.map,
+            error: error,
+            context: context,
+          );
+        }
+      } catch (err, stackTrace) {
+        final error = HttpError(
           type: HttpErrorType.unknown,
           message: err.toString(),
           stackTrace: stackTrace,
-        ),
-      );
+        );
+
+        return ApiResponse<T?>(data: null, error: error, context: context);
+      }
     }
+
+    return ApiResponse<T?>(data: null, context: context);
   }
 
   HttpError _mapDioError(DioException err) {
@@ -68,7 +97,6 @@ class RequestExecutor {
 
       case DioExceptionType.connectionError:
         final error = err.error;
-
         if (error is SocketException) {
           return HttpError(
             type: HttpErrorType.network,
@@ -84,7 +112,7 @@ class RequestExecutor {
       default:
         return HttpError(
           type: HttpErrorType.unknown,
-          message: err.error?.toString() ?? err.message ?? 'Unknown error',
+          message: err.message ?? 'Unknown error',
           statusCode: statusCode,
         );
     }
@@ -95,51 +123,57 @@ class RequestExecutor {
     dynamic data,
     DioException err,
   ) {
-    final messageFromApi = _extractMessage(data);
+    final message = _extractMessage(data);
 
     switch (statusCode) {
       case 400:
         return HttpError(
           type: HttpErrorType.badRequest,
           statusCode: statusCode,
-          message: messageFromApi ?? 'Bad request',
+          message: message ?? 'Bad request',
         );
+
       case 401:
         return HttpError(
           type: HttpErrorType.unauthorized,
           statusCode: statusCode,
-          message: messageFromApi ?? 'Unauthorized',
+          message: message ?? 'Unauthorized',
         );
+
       case 403:
         return HttpError(
           type: HttpErrorType.forbidden,
           statusCode: statusCode,
-          message: messageFromApi ?? 'Forbidden',
+          message: message ?? 'Forbidden',
         );
+
       case 404:
         return HttpError(
-          type: HttpErrorType.notFound,
+          type: HttpErrorType.notFound, 
           statusCode: statusCode,
-          message: messageFromApi ?? 'Not found',
+          message: message ?? 'Not found',
         );
+
       case 409:
         return HttpError(
           type: HttpErrorType.conflict,
           statusCode: statusCode,
-          message: messageFromApi ?? 'Conflict',
+          message: message ?? 'Conflict',
         );
+
       case 422:
         return HttpError(
           type: HttpErrorType.validation,
           statusCode: statusCode,
-          message: messageFromApi ?? 'Validation error',
+          message: message ?? 'Validation error',
           data: data,
         );
+
       case 429:
         return HttpError(
           type: HttpErrorType.tooManyRequests,
           statusCode: statusCode,
-          message: messageFromApi ?? 'Too many requests',
+          message: message ?? 'Too many requests',
         );
     }
 
@@ -147,24 +181,19 @@ class RequestExecutor {
       return HttpError(
         type: HttpErrorType.server,
         statusCode: statusCode,
-        message: messageFromApi ?? 'Server error',
+        message: message ?? 'Server error',
       );
     }
 
     return HttpError(
       type: HttpErrorType.unknown,
       statusCode: statusCode,
-      message: messageFromApi ?? err.message ?? 'Unknown error',
+      message: message ?? err.message ?? 'Unknown error',
     );
   }
 
   String? _extractMessage(dynamic data) {
-    if (data == null) return null;
-
-    if (data is Map<String, dynamic>) {
-      return data['errors']?.toString();
-    }
-
-    return null;
+    if (data is Map<String, dynamic>) return data['errors']?.toString();
+    return data?.toString();
   }
 }
