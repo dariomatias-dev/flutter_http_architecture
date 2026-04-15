@@ -1,7 +1,7 @@
 import 'package:flutter_http_architecture/src/core/http/models/api_response.dart';
 import 'package:flutter_http_architecture/src/core/http/options/http_request_options.dart';
 import 'package:flutter_http_architecture/src/core/http/tokens/http_cancel_token.dart';
-import 'package:flutter_http_architecture/src/core/type/progress_callback_http.dart';
+import 'package:flutter_http_architecture/src/core/http/types/progress_callback_http.dart';
 
 abstract class HttpClient {
   Future<ApiResponse<T?>> get<T>(
