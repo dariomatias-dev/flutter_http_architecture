@@ -4,6 +4,8 @@ class HttpRequestOptions {
   final Duration? receiveTimeout;
   final String? contentType;
   final Map<String, dynamic>? extra;
+  final int? maxRetries;
+  final Duration? retryDelay;
 
   const HttpRequestOptions({
     this.headers,
@@ -11,6 +13,8 @@ class HttpRequestOptions {
     this.receiveTimeout,
     this.contentType,
     this.extra,
+    this.maxRetries,
+    this.retryDelay,
   });
 
   HttpRequestOptions copyWith({
@@ -19,6 +23,8 @@ class HttpRequestOptions {
     Duration? receiveTimeout,
     String? contentType,
     Map<String, dynamic>? extra,
+    int? maxRetries,
+    Duration? retryDelay,
   }) {
     return HttpRequestOptions(
       headers: headers ?? this.headers,
@@ -26,6 +32,8 @@ class HttpRequestOptions {
       receiveTimeout: receiveTimeout ?? this.receiveTimeout,
       contentType: contentType ?? this.contentType,
       extra: extra ?? this.extra,
+      maxRetries: maxRetries ?? this.maxRetries,
+      retryDelay: retryDelay ?? this.retryDelay,
     );
   }
 }

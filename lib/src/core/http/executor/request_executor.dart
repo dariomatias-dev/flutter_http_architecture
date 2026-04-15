@@ -11,6 +11,7 @@ class RequestExecutor {
   Future<ApiResponse<T?>> execute<T>({
     required Future<Response<T?>> Function() request,
     int maxRetries = 0,
+    Duration retryDelay = Duration.zero,
   }) async {
     RequestContext? context;
 
@@ -43,15 +44,23 @@ class RequestExecutor {
           context.statusCode = err.response?.statusCode;
         }
 
-        if (attempt == maxRetries) {
-          return ApiResponse<T?>(
-            data: null,
-            statusCode: context?.statusCode,
-            headers: err.response?.headers.map,
-            error: error,
-            context: context,
-          );
+        final shouldRetry = _shouldRetry(err);
+
+        if (attempt < maxRetries && shouldRetry) {
+          if (retryDelay != Duration.zero) {
+            await Future.delayed(retryDelay * (attempt + 1));
+          }
+
+          continue;
         }
+
+        return ApiResponse<T?>(
+          data: null,
+          statusCode: context?.statusCode,
+          headers: err.response?.headers.map,
+          error: error,
+          context: context,
+        );
       } catch (err, stackTrace) {
         final error = HttpError(
           type: HttpErrorType.unknown,
@@ -64,6 +73,23 @@ class RequestExecutor {
     }
 
     return ApiResponse<T?>(data: null, context: context);
+  }
+
+  bool _shouldRetry(DioException err) {
+    if (err.type == DioExceptionType.cancel) return false;
+
+    const retryableTypes = {
+      DioExceptionType.connectionTimeout,
+      DioExceptionType.receiveTimeout,
+      DioExceptionType.sendTimeout,
+      DioExceptionType.connectionError,
+    };
+
+    if (retryableTypes.contains(err.type)) return true;
+
+    final statusCode = err.response?.statusCode;
+
+    return statusCode != null && (statusCode >= 500 || statusCode == 429);
   }
 
   HttpError _mapDioError(DioException err) {
@@ -149,7 +175,7 @@ class RequestExecutor {
 
       case 404:
         return HttpError(
-          type: HttpErrorType.notFound, 
+          type: HttpErrorType.notFound,
           statusCode: statusCode,
           message: message ?? 'Not found',
         );

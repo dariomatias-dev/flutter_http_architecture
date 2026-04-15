@@ -90,6 +90,8 @@ class DioHttpClient implements HttpClient {
           cancelToken: _extractCancelToken(cancelToken),
         );
       },
+      maxRetries: options?.maxRetries ?? 0,
+      retryDelay: options?.retryDelay ?? Duration.zero,
     );
   }
 
