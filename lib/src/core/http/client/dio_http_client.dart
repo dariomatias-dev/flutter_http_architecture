@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 
 import 'package:flutter_http_architecture/src/core/http/client/http_client.dart';
 import 'package:flutter_http_architecture/src/core/http/config/network_config.dart';
@@ -8,6 +9,7 @@ import 'package:flutter_http_architecture/src/core/http/models/api_response.dart
 import 'package:flutter_http_architecture/src/core/http/options/http_request_options.dart';
 import 'package:flutter_http_architecture/src/core/http/tokens/http_cancel_token.dart';
 import 'package:flutter_http_architecture/src/core/http/types/progress_callback_http.dart';
+import 'package:flutter_http_architecture/src/core/http/multipart/http_multipart.dart';
 
 class DioCancelToken implements HttpCancelToken {
   final CancelToken _token = CancelToken();
@@ -35,7 +37,7 @@ class DioHttpClient implements HttpClient {
       ),
     );
 
-    _dio.interceptors.add(LoggingInterceptor());
+    _dio.interceptors.addAll([if (kDebugMode) LoggingInterceptor()]);
 
     _executor = RequestExecutor();
   }
@@ -56,7 +58,7 @@ class DioHttpClient implements HttpClient {
       sendTimeout: options?.sendTimeout,
       receiveTimeout: options?.receiveTimeout,
       contentType: options?.contentType,
-      extra: options?.extra,
+      extra: {...?options?.extra},
     );
   }
 
@@ -68,7 +70,7 @@ class DioHttpClient implements HttpClient {
     return null;
   }
 
-  Future<ApiResponse<T?>> _request<T>(
+  Future<ApiResponse<T>> _request<T>(
     String method,
     String path, {
     Object? data,
@@ -78,20 +80,30 @@ class DioHttpClient implements HttpClient {
     ProgressCallbackHttp? onReceiveProgress,
     HttpCancelToken? cancelToken,
   }) {
-    return _executor.execute(
-      request: () {
+    final parsedData = data is HttpMultipart ? data.raw : data;
+
+    return _executor.execute<T>(
+      method: method,
+      path: path,
+      options: options,
+      request: (context, attempt) {
+        context.retryCount = attempt;
+
         return _dio.request<T>(
           path,
-          data: data,
+          data: parsedData,
           queryParameters: queryParameters,
-          options: _mapToDioOptions(method, options),
+          options: _mapToDioOptions(method, options).copyWith(
+            extra: {
+              ...?_mapToDioOptions(method, options).extra,
+              'requestContext': context,
+            },
+          ),
           onSendProgress: onSendProgress,
           onReceiveProgress: onReceiveProgress,
           cancelToken: _extractCancelToken(cancelToken),
         );
       },
-      maxRetries: options?.maxRetries ?? 0,
-      retryDelay: options?.retryDelay ?? Duration.zero,
     );
   }
 

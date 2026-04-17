@@ -6,6 +6,7 @@ class HttpRequestOptions {
   final Map<String, dynamic>? extra;
   final int? maxRetries;
   final Duration? retryDelay;
+  final bool? retryable;
 
   const HttpRequestOptions({
     this.headers,
@@ -15,6 +16,7 @@ class HttpRequestOptions {
     this.extra,
     this.maxRetries,
     this.retryDelay,
+    this.retryable,
   });
 
   HttpRequestOptions copyWith({
@@ -25,6 +27,7 @@ class HttpRequestOptions {
     Map<String, dynamic>? extra,
     int? maxRetries,
     Duration? retryDelay,
+    bool? retryable,
   }) {
     return HttpRequestOptions(
       headers: headers ?? this.headers,
@@ -34,6 +37,7 @@ class HttpRequestOptions {
       extra: extra ?? this.extra,
       maxRetries: maxRetries ?? this.maxRetries,
       retryDelay: retryDelay ?? this.retryDelay,
+      retryable: retryable ?? this.retryable,
     );
   }
 }

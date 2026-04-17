@@ -2,49 +2,51 @@ import 'dart:io';
 
 import 'package:dio/dio.dart';
 
-import 'package:flutter_http_architecture/src/core/http/executor/request_context.dart';
-import 'package:flutter_http_architecture/src/core/http/models/api_response.dart';
 import 'package:flutter_http_architecture/src/core/http/errors/http_error.dart';
 import 'package:flutter_http_architecture/src/core/http/errors/http_error_type.dart';
+import 'package:flutter_http_architecture/src/core/http/executor/request_context.dart';
+import 'package:flutter_http_architecture/src/core/http/models/api_response.dart';
+import 'package:flutter_http_architecture/src/core/http/options/http_request_options.dart';
 
 class RequestExecutor {
-  Future<ApiResponse<T?>> execute<T>({
-    required Future<Response<T?>> Function() request,
-    int maxRetries = 0,
-    Duration retryDelay = Duration.zero,
+  Future<ApiResponse<T>> execute<T>({
+    required Future<Response<T>> Function(RequestContext context, int attempt)
+    request,
+    required String method,
+    required String path,
+    HttpRequestOptions? options,
   }) async {
-    RequestContext? context;
+    final context = RequestContext(
+      method: method,
+      path: path,
+      startTime: DateTime.now(),
+    );
+
+    final maxRetries = options?.maxRetries ?? 0;
+    final retryDelay = options?.retryDelay ?? Duration.zero;
 
     for (int attempt = 0; attempt <= maxRetries; attempt++) {
       try {
-        final response = await request();
+        final response = await request(context, attempt);
 
-        context =
-            response.requestOptions.extra['requestContext'] as RequestContext?;
+        context.statusCode = response.statusCode;
+        context.duration = DateTime.now().difference(context.startTime);
 
-        if (context != null) {
-          context.retryCount = attempt;
-        }
-
-        return ApiResponse<T?>(
+        return ApiResponse<T>(
           data: response.data,
           statusCode: response.statusCode,
           headers: response.headers.map,
-          error: null,
           context: context,
         );
       } on DioException catch (err) {
-        context = err.requestOptions.extra['requestContext'] as RequestContext?;
-
         final error = _mapDioError(err);
 
-        if (context != null) {
-          context.retryCount = attempt;
-          context.error = error;
-          context.statusCode = err.response?.statusCode;
-        }
+        context.retryCount = attempt;
+        context.error = error;
+        context.statusCode = err.response?.statusCode;
+        context.duration = DateTime.now().difference(context.startTime);
 
-        final shouldRetry = _shouldRetry(err);
+        final shouldRetry = _shouldRetry(err, method, options);
 
         if (attempt < maxRetries && shouldRetry) {
           if (retryDelay != Duration.zero) {
@@ -54,9 +56,9 @@ class RequestExecutor {
           continue;
         }
 
-        return ApiResponse<T?>(
+        return ApiResponse<T>(
           data: null,
-          statusCode: context?.statusCode,
+          statusCode: context.statusCode,
           headers: err.response?.headers.map,
           error: error,
           context: context,
@@ -68,15 +70,25 @@ class RequestExecutor {
           stackTrace: stackTrace,
         );
 
-        return ApiResponse<T?>(data: null, error: error, context: context);
+        context.error = error;
+        context.duration = DateTime.now().difference(context.startTime);
+
+        return ApiResponse<T>(data: null, error: error, context: context);
       }
     }
 
-    return ApiResponse<T?>(data: null, context: context);
+    return ApiResponse<T>(context: context);
   }
 
-  bool _shouldRetry(DioException err) {
+  bool _shouldRetry(
+    DioException err,
+    String method,
+    HttpRequestOptions? options,
+  ) {
     if (err.type == DioExceptionType.cancel) return false;
+
+    final retryable = options?.retryable ?? _isIdempotent(method);
+    if (!retryable) return false;
 
     const retryableTypes = {
       DioExceptionType.connectionTimeout,
@@ -90,6 +102,10 @@ class RequestExecutor {
     final statusCode = err.response?.statusCode;
 
     return statusCode != null && (statusCode >= 500 || statusCode == 429);
+  }
+
+  bool _isIdempotent(String method) {
+    return const ['GET', 'HEAD', 'OPTIONS', 'PUT', 'DELETE'].contains(method);
   }
 
   HttpError _mapDioError(DioException err) {
