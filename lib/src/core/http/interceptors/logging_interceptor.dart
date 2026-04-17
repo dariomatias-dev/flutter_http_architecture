@@ -17,14 +17,17 @@ class LoggingInterceptor extends Interceptor {
 
   String _formatContext(RequestContext context) {
     return 'start=${context.startTime.toIso8601String()} | '
-        'retry=${context.retryCount} | '
+        'retry=${context.retryCount + 1} | '
         'status=${context.statusCode ?? '-'} | '
         'duration=${context.duration != null ? '${context.duration?.inMilliseconds}ms' : '-'}';
   }
 
   @override
   void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
-    final context = RequestContext(
+    RequestContext? context =
+        options.extra['requestContext'] as RequestContext?;
+
+    context ??= RequestContext(
       method: options.method,
       path: options.path,
       startTime: DateTime.now(),
