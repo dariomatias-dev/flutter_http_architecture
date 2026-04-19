@@ -12,30 +12,31 @@ class HttpTesterNotifier extends AsyncNotifier<HttpTesterViewState> {
   }
 
   void updateMethod(String method) {
-    final current = state.value ?? HttpTesterViewState();
+    final current = state.requireValue;
 
     state = AsyncData(current.copyWith(method: method));
   }
 
   void updateStatus(int status) {
-    final current = state.value ?? HttpTesterViewState();
+    final current = state.requireValue;
 
     state = AsyncData(current.copyWith(statusCode: status));
   }
 
   void updateRetryCount(int count) {
-    final current = state.value ?? HttpTesterViewState();
+    final current = state.requireValue;
 
     state = AsyncData(current.copyWith(maxRetries: count));
   }
 
   void updateBody(String body) {
-    final current = state.value ?? HttpTesterViewState();
+    final current = state.requireValue;
+
     state = AsyncData(current.copyWith(requestBody: body));
   }
 
   Future<void> runRequest() async {
-    final current = state.value ?? HttpTesterViewState();
+    final current = state.requireValue;
     final viewModel = ref.read(httpTesterViewModelProvider);
 
     state = const AsyncLoading();
