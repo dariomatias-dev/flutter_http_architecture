@@ -50,8 +50,10 @@ class RequestExecutor {
         final shouldRetry = _shouldRetry(err, method, options);
 
         if (attempt < maxRetries && shouldRetry) {
-          if (retryDelay != Duration.zero) {
-            await Future.delayed(retryDelay * (attempt + 1));
+          final delay = _calculateDelay(attempt, retryDelay);
+
+          if (delay > Duration.zero) {
+            await Future.delayed(delay);
           }
 
           continue;
@@ -238,5 +240,16 @@ class RequestExecutor {
   String? _extractMessage(dynamic data) {
     if (data is Map<String, dynamic>) return data['errors']?.toString();
     return data?.toString();
+  }
+
+  Duration _calculateDelay(int attempt, Duration baseDelay) {
+    if (baseDelay == Duration.zero) return Duration.zero;
+
+    final exponentialFactor = 1 << attempt;
+    final delay = baseDelay * exponentialFactor;
+
+    const maxDelay = Duration(seconds: 10);
+
+    return delay > maxDelay ? maxDelay : delay;
   }
 }
