@@ -26,16 +26,18 @@ class DioCancelToken implements HttpCancelToken {
 }
 
 class DioHttpClient implements HttpClient {
-  DioHttpClient({required NetworkConfig config})
+  DioHttpClient({required NetworkConfig config, Dio? dio})
     : _defaultHeaders = config.defaultHeaders {
-    _dio = Dio(
-      BaseOptions(
-        baseUrl: config.baseUrl ?? '',
-        connectTimeout: config.connectTimeout,
-        receiveTimeout: config.receiveTimeout,
-        headers: _defaultHeaders,
-      ),
-    );
+    _dio =
+        dio ??
+        Dio(
+          BaseOptions(
+            baseUrl: config.baseUrl ?? '',
+            connectTimeout: config.connectTimeout,
+            receiveTimeout: config.receiveTimeout,
+            headers: _defaultHeaders,
+          ),
+        );
 
     _dio.interceptors.addAll([if (kDebugMode) LoggingInterceptor()]);
 
@@ -66,7 +68,6 @@ class DioHttpClient implements HttpClient {
     if (token is DioCancelToken) {
       return token.raw;
     }
-
     return null;
   }
 
