@@ -1,4 +1,5 @@
 import 'package:flutter_http_architecture/src/core/http/client/http_client.dart';
+import 'package:flutter_http_architecture/src/core/http/options/http_request_options.dart';
 
 abstract class IHttpBinRepository {
   Future<int> get(String path);
@@ -22,7 +23,7 @@ class HttpBinRepository implements IHttpBinRepository {
 
   @override
   Future<int> get(String path) async {
-    final response = await _httpClient.get<Map<String, dynamic>>(path);
+    final response = await _httpClient.get<Map<String, dynamic>>(path, options: HttpRequestOptions(maxRetries: 2));
 
     return response.statusCode ?? 0;
   }

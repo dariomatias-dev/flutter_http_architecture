@@ -10,8 +10,7 @@ import 'package:flutter_http_architecture/src/core/http/options/http_request_opt
 
 class RequestExecutor {
   Future<ApiResponse<T>> execute<T>({
-    required Future<Response<T>> Function(RequestContext context, int attempt)
-    request,
+    required Future<Response<T>> Function(RequestContext context) request,
     required String method,
     required String path,
     HttpRequestOptions? options,
@@ -27,7 +26,9 @@ class RequestExecutor {
 
     for (int attempt = 0; attempt <= maxRetries; attempt++) {
       try {
-        final response = await request(context, attempt);
+        context.retryCount = attempt;
+
+        final response = await request(context);
 
         context.statusCode = response.statusCode;
         context.duration = DateTime.now().difference(context.startTime);
