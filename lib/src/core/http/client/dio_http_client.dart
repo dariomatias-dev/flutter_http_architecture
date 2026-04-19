@@ -86,18 +86,15 @@ class DioHttpClient implements HttpClient {
       method: method,
       path: path,
       options: options,
-      request: (context, attempt) {
-        context.retryCount = attempt;
+      request: (context) {
+        final dioOptions = _mapToDioOptions(method, options);
 
         return _dio.request<T>(
           path,
           data: parsedData,
           queryParameters: queryParameters,
-          options: _mapToDioOptions(method, options).copyWith(
-            extra: {
-              ...?_mapToDioOptions(method, options).extra,
-              'requestContext': context,
-            },
+          options: dioOptions.copyWith(
+            extra: {...?dioOptions.extra, 'requestContext': context},
           ),
           onSendProgress: onSendProgress,
           onReceiveProgress: onReceiveProgress,
