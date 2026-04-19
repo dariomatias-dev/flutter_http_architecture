@@ -17,7 +17,7 @@ class LoggingInterceptor extends Interceptor {
 
   String _formatContext(RequestContext context) {
     return 'start=${context.startTime.toIso8601String()} | '
-        'retry=${context.retryCount + 1} | '
+        'retry=${context.retryCount} | '
         'status=${context.statusCode ?? '-'} | '
         'duration=${context.duration != null ? '${context.duration?.inMilliseconds}ms' : '-'}';
   }
