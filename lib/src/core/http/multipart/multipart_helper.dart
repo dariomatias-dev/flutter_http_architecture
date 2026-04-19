@@ -21,8 +21,13 @@ class MultipartHelper {
         );
       } else if (value is Uint8List) {
         map[entry.key] = MultipartFile.fromBytes(value);
-      } else if (value is String && File(value).existsSync()) {
-        map[entry.key] = await MultipartFile.fromFile(value);
+      } else if (value is String) {
+        final file = File(value);
+        if (await file.exists()) {
+          map[entry.key] = await MultipartFile.fromFile(file.path);
+        } else {
+          map[entry.key] = value;
+        }
       } else {
         map[entry.key] = value;
       }
