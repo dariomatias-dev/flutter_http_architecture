@@ -30,16 +30,4 @@ void main() {
 
     expect(container.read(httpTesterNotifierProvider).value!.maxRetries, 3);
   });
-
-  test('updates body', () {
-    final container = ProviderContainer();
-    final notifier = container.read(httpTesterNotifierProvider.notifier);
-
-    notifier.updateBody('{"test":true}');
-
-    expect(
-      container.read(httpTesterNotifierProvider).value!.requestBody,
-      '{"test":true}',
-    );
-  });
 }

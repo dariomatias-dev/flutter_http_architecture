@@ -101,17 +101,6 @@ class HttpTesterScreen extends ConsumerWidget {
                   fontWeight: FontWeight.w500,
                 ),
               ),
-              const SizedBox(height: 16.0),
-              TextFormField(
-                initialValue: stateData.requestBody,
-                maxLines: 4,
-                decoration: _inputStyle('RAW BODY (JSON)'),
-                style: const TextStyle(fontFamily: 'monospace', fontSize: 12.0),
-                onChanged: notifier.updateBody,
-                onTapOutside: (PointerDownEvent event) {
-                  FocusManager.instance.primaryFocus?.unfocus();
-                },
-              ),
               const SizedBox(height: 24.0),
               SizedBox(
                 width: double.infinity,
@@ -132,8 +121,8 @@ class HttpTesterScreen extends ConsumerWidget {
                   ),
                 ),
               ),
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 28.0),
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: 28.0),
                 child: Divider(),
               ),
               if (isLoading)
