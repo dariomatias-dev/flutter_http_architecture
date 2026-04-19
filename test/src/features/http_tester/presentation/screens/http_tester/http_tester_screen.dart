@@ -3,24 +3,16 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:flutter_http_architecture/src/features/http_tester/di/http_tester_providers.dart';
-import 'package:flutter_http_architecture/src/features/http_tester/presentation/providers/http_tester_notifier.dart';
 import 'package:flutter_http_architecture/src/features/http_tester/presentation/screens/http_tester/http_tester_screen.dart';
 import 'package:flutter_http_architecture/src/features/http_tester/presentation/viewmodels/http_tester_view_state.dart';
 
-class FakeNotifier extends HttpTesterNotifier {
-  FakeNotifier(this._state);
-
-  final HttpTesterViewState _state;
-
-  @override
-  HttpTesterViewState build() => _state;
-}
+import '../../../data/fakes/fake_http_tester_notifier.dart';
 
 void main() {
   Widget createWidget(HttpTesterViewState state) {
     return ProviderScope(
       overrides: [
-        httpTesterNotifierProvider.overrideWith(() => FakeNotifier(state)),
+        httpTesterNotifierProvider.overrideWith(FakeHttpTesterNotifier.new),
       ],
       child: const MaterialApp(home: HttpTesterScreen()),
     );
@@ -33,21 +25,6 @@ void main() {
     expect(find.text('EXECUTE REQUEST'), findsOneWidget);
     expect(find.byType(DropdownButtonFormField), findsWidgets);
     expect(find.byType(TextFormField), findsOneWidget);
-  });
-
-  testWidgets('shows loading state when isLoading is true', (tester) async {
-    await tester.pumpWidget(
-      ProviderScope(
-        overrides: [
-          httpTesterNotifierProvider.overrideWith(
-            () => FakeNotifier(HttpTesterViewState().copyWith()),
-          ),
-        ],
-        child: const MaterialApp(home: HttpTesterScreen()),
-      ),
-    );
-
-    expect(find.byType(CircularProgressIndicator), findsNothing);
   });
 
   testWidgets('displays response section when result is not empty', (

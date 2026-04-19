@@ -1,60 +1,13 @@
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:flutter_http_architecture/src/core/http/executor/request_context.dart';
-import 'package:flutter_http_architecture/src/core/http/models/api_response.dart';
-import 'package:flutter_http_architecture/src/core/http/errors/http_error.dart';
-import 'package:flutter_http_architecture/src/core/http/errors/http_error_type.dart';
-
-import 'package:flutter_http_architecture/src/features/http_tester/domain/repositories/http_tester_repository.dart';
 import 'package:flutter_http_architecture/src/features/http_tester/presentation/viewmodels/http_tester_view_model.dart';
 
-class FakeRepository implements HttpTesterRepository {
-  @override
-  Future<ApiResponse<dynamic>> executeRequest({
-    required String method,
-    required int statusCode,
-    int maxRetries = 0,
-    Object? data,
-    Map<String, dynamic>? queryParameters,
-  }) async {
-    return ApiResponse(
-      data: {'message': 'success'},
-      statusCode: statusCode,
-      headers: {'x-test': 'true'},
-      context: RequestContext(
-        method: method,
-        path: '/test',
-        startTime: DateTime.now(),
-      ),
-    );
-  }
-}
-
-class FailingRepository implements HttpTesterRepository {
-  @override
-  Future<ApiResponse<dynamic>> executeRequest({
-    required String method,
-    required int statusCode,
-    int maxRetries = 0,
-    Object? data,
-    Map<String, dynamic>? queryParameters,
-  }) async {
-    return ApiResponse(
-      data: null,
-      statusCode: 500,
-      error: HttpError(type: HttpErrorType.server, message: 'error'),
-      context: RequestContext(
-        method: method,
-        path: '/test',
-        startTime: DateTime.now(),
-      ),
-    );
-  }
-}
+import '../../data/fakes/failing_http_tester_repository.dart';
+import '../../data/fakes/fake_http_tester_repository.dart';
 
 void main() {
   test('formats success response', () async {
-    final vm = HttpTesterViewModel(FakeRepository());
+    final vm = HttpTesterViewModel(FakeHttpTesterRepository());
 
     final result = await vm.executeAndFormat(
       method: 'GET',
@@ -66,7 +19,7 @@ void main() {
   });
 
   test('formats error response', () async {
-    final vm = HttpTesterViewModel(FailingRepository());
+    final vm = HttpTesterViewModel(FailingHttpTesterRepository());
 
     final result = await vm.executeAndFormat(
       method: 'GET',
