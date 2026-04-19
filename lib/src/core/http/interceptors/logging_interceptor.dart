@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:logger/logger.dart';
 
 import 'package:flutter_http_architecture/src/core/http/executor/request_context.dart';
+import 'package:flutter_http_architecture/src/core/http/utils/log_sanitizer.dart';
 
 class LoggingInterceptor extends Interceptor {
   final _logger = Logger(
@@ -48,23 +49,24 @@ class LoggingInterceptor extends Interceptor {
 
     buffer.writeln('│');
     buffer.writeln('│ ▶ HEADERS');
-    buffer.writeln('│   ${options.headers}');
+    buffer.writeln('│   ${LogSanitizer.sanitize(options.headers)}');
 
     if (options.queryParameters.isNotEmpty) {
       buffer.writeln('│');
       buffer.writeln('│ ▶ QUERY');
-      buffer.writeln('│   ${options.queryParameters}');
+      buffer.writeln('│   ${LogSanitizer.sanitize(options.queryParameters)}');
     }
 
     if (options.data != null) {
       buffer.writeln('│');
       buffer.writeln('│ ▶ BODY');
-      buffer.writeln('│   ${options.data}');
+      buffer.writeln('│   ${LogSanitizer.sanitize(options.data)}');
     }
 
     buffer.writeln('└────────────────────────────────────────');
 
     _logger.i(buffer.toString());
+
     handler.next(options);
   }
 
@@ -104,15 +106,16 @@ class LoggingInterceptor extends Interceptor {
 
     buffer.writeln('│');
     buffer.writeln('│ ▶ HEADERS');
-    buffer.writeln('│   ${response.headers.map}');
+    buffer.writeln('│   ${LogSanitizer.sanitize(response.headers.map)}');
 
     buffer.writeln('│');
     buffer.writeln('│ ▶ DATA');
-    buffer.writeln('│   ${response.data}');
+    buffer.writeln('│   ${LogSanitizer.sanitize(response.data)}');
 
     buffer.writeln('└────────────────────────────────────────');
 
     _logger.i(buffer.toString());
+
     handler.next(response);
   }
 
@@ -152,11 +155,11 @@ class LoggingInterceptor extends Interceptor {
 
     buffer.writeln('│');
     buffer.writeln('│ ▶ HEADERS');
-    buffer.writeln('│   ${err.response?.headers.map}');
+    buffer.writeln('│   ${LogSanitizer.sanitize(err.response?.headers.map)}');
 
     buffer.writeln('│');
     buffer.writeln('│ ▶ DATA');
-    buffer.writeln('│   ${err.response?.data}');
+    buffer.writeln('│   ${LogSanitizer.sanitize(err.response?.data)}');
 
     buffer.writeln('│');
     buffer.writeln('│ ▶ EXCEPTION');
@@ -169,6 +172,7 @@ class LoggingInterceptor extends Interceptor {
     buffer.writeln('└────────────────────────────────────────');
 
     _logger.e(buffer.toString());
+
     handler.next(err);
   }
 }
