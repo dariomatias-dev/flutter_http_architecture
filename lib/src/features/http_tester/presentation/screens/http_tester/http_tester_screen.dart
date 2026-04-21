@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:flutter_http_architecture/src/core/di/theme_notifier_provider.dart';
+
 import 'package:flutter_http_architecture/src/features/http_tester/di/http_tester_providers.dart';
 
 final methods = <String>['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'];
@@ -12,6 +14,7 @@ class HttpTesterScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
     final asyncState = ref.watch(httpTesterNotifierProvider);
     final notifier = ref.read(httpTesterNotifierProvider.notifier);
 
@@ -19,9 +22,7 @@ class HttpTesterScreen extends ConsumerWidget {
     final isLoading = asyncState.isLoading;
 
     return Scaffold(
-      backgroundColor: Colors.white,
       appBar: AppBar(
-        surfaceTintColor: Colors.white,
         title: const Text(
           'HTTP ARCHITECTURE',
           style: TextStyle(
@@ -30,10 +31,16 @@ class HttpTesterScreen extends ConsumerWidget {
             letterSpacing: 1.2,
           ),
         ),
-        centerTitle: true,
-        backgroundColor: Colors.white,
-        elevation: 0.0,
-        foregroundColor: Colors.black,
+        actions: <Widget>[
+          IconButton(
+            onPressed: ref.read(themeNotifierProvider.notifier).toggleTheme,
+            icon: Icon(
+              theme.brightness == Brightness.dark
+                  ? Icons.light_mode
+                  : Icons.dark_mode,
+            ),
+          ),
+        ],
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -41,39 +48,43 @@ class HttpTesterScreen extends ConsumerWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
-              _sectionTitle('REQUEST CONFIGURATION'),
+              _sectionTitle('REQUEST CONFIGURATION', theme),
               const SizedBox(height: 16.0),
               Row(
                 children: <Widget>[
                   Expanded(
                     child: DropdownButtonFormField<String>(
                       initialValue: stateData.method,
-                      decoration: _inputStyle('METHOD'),
-                      items: methods.map<DropdownMenuItem<String>>((String m) {
+                      decoration: _inputStyle('METHOD', theme),
+                      dropdownColor: theme.colorScheme.surface,
+                      items: methods.map<DropdownMenuItem<String>>((method) {
                         return DropdownMenuItem<String>(
-                          value: m,
-                          child: Text(m),
+                          value: method,
+                          child: Text(method),
                         );
                       }).toList(),
                       onChanged: isLoading
                           ? null
-                          : (String? v) => notifier.updateMethod(v!),
+                          : (v) => notifier.updateMethod(v!),
                     ),
                   ),
                   const SizedBox(width: 16.0),
                   Expanded(
                     child: DropdownButtonFormField<int>(
                       initialValue: stateData.statusCode,
-                      decoration: _inputStyle('STATUS'),
-                      items: statusCodes.map<DropdownMenuItem<int>>((int s) {
+                      decoration: _inputStyle('STATUS', theme),
+                      dropdownColor: theme.colorScheme.surface,
+                      items: statusCodes.map<DropdownMenuItem<int>>((
+                        statusCode,
+                      ) {
                         return DropdownMenuItem<int>(
-                          value: s,
-                          child: Text(s.toString()),
+                          value: statusCode,
+                          child: Text(statusCode.toString()),
                         );
                       }).toList(),
                       onChanged: isLoading
                           ? null
-                          : (int? v) => notifier.updateStatus(v!),
+                          : (v) => notifier.updateStatus(v!),
                     ),
                   ),
                 ],
@@ -81,23 +92,24 @@ class HttpTesterScreen extends ConsumerWidget {
               const SizedBox(height: 16.0),
               DropdownButtonFormField<int>(
                 initialValue: stateData.maxRetries,
-                decoration: _inputStyle('MAX RETRIES'),
-                items: retryOptions.map<DropdownMenuItem<int>>((int r) {
+                decoration: _inputStyle('MAX RETRIES', theme),
+                dropdownColor: theme.colorScheme.surface,
+                items: retryOptions.map<DropdownMenuItem<int>>((retryOption) {
                   return DropdownMenuItem<int>(
-                    value: r,
-                    child: Text('$r Attempts'),
+                    value: retryOption,
+                    child: Text('$retryOption Attempts'),
                   );
                 }).toList(),
                 onChanged: isLoading
                     ? null
-                    : (int? v) => notifier.updateRetryCount(v!),
+                    : (v) => notifier.updateRetryCount(v!),
               ),
               const SizedBox(height: 8.0),
-              const Text(
+              Text(
                 'Delay logic: 2s * (attempt + 1). Example: 2s, 4s, 6s...',
                 style: TextStyle(
+                  color: theme.colorScheme.onSurface.withAlpha(128),
                   fontSize: 10.0,
-                  color: Colors.grey,
                   fontWeight: FontWeight.w500,
                 ),
               ),
@@ -108,8 +120,8 @@ class HttpTesterScreen extends ConsumerWidget {
                 child: ElevatedButton(
                   onPressed: isLoading ? null : notifier.runRequest,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.black,
-                    foregroundColor: Colors.white,
+                    backgroundColor: theme.colorScheme.primary,
+                    foregroundColor: theme.colorScheme.onPrimary,
                     elevation: 0.0,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8.0),
@@ -130,8 +142,8 @@ class HttpTesterScreen extends ConsumerWidget {
                   child: Column(
                     children: <Widget>[
                       const SizedBox(height: 40.0),
-                      const CircularProgressIndicator(
-                        color: Colors.black,
+                      CircularProgressIndicator(
+                        color: theme.colorScheme.primary,
                         strokeWidth: 2.0,
                       ),
                       const SizedBox(height: 16.0),
@@ -141,14 +153,14 @@ class HttpTesterScreen extends ConsumerWidget {
                           fontSize: 10.0,
                           fontWeight: FontWeight.w900,
                           letterSpacing: 2.0,
-                          color: Colors.grey[600],
+                          color: theme.colorScheme.onSurface.withAlpha(153),
                         ),
                       ),
                     ],
                   ),
                 )
               else if (stateData.result.isNotEmpty) ...<Widget>[
-                _sectionTitle('METRICS & PERFORMANCE'),
+                _sectionTitle('METRICS & PERFORMANCE', theme),
                 const SizedBox(height: 12.0),
                 Row(
                   children: <Widget>[
@@ -157,6 +169,7 @@ class HttpTesterScreen extends ConsumerWidget {
                         'Latency',
                         stateData.duration,
                         Icons.speed,
+                        theme,
                       ),
                     ),
                     const SizedBox(width: 12.0),
@@ -165,18 +178,27 @@ class HttpTesterScreen extends ConsumerWidget {
                         'Retry Count',
                         '${stateData.actualRetries}',
                         Icons.refresh,
+                        theme,
                       ),
                     ),
                   ],
                 ),
                 const SizedBox(height: 24.0),
-                _sectionTitle('RESPONSE BODY'),
+                _sectionTitle('RESPONSE BODY', theme),
                 const SizedBox(height: 12.0),
-                _codeBlock(stateData.result, const Color(0xFF1A1A1A)),
+                _codeBlock(
+                  stateData.result,
+                  theme.colorScheme.surfaceContainerHighest,
+                  theme,
+                ),
                 const SizedBox(height: 24.0),
-                _sectionTitle('HEADERS'),
+                _sectionTitle('HEADERS', theme),
                 const SizedBox(height: 12.0),
-                _codeBlock(stateData.headers, const Color(0xFF2C2C2C)),
+                _codeBlock(
+                  stateData.headers,
+                  theme.colorScheme.surfaceContainerHighest.withAlpha(179),
+                  theme,
+                ),
               ],
             ],
           ),
@@ -185,11 +207,11 @@ class HttpTesterScreen extends ConsumerWidget {
     );
   }
 
-  Widget _sectionTitle(String title) {
+  Widget _sectionTitle(String title, ThemeData theme) {
     return Text(
       title,
-      style: const TextStyle(
-        color: Colors.grey,
+      style: TextStyle(
+        color: theme.colorScheme.onSurface.withAlpha(128),
         fontSize: 11.0,
         fontWeight: FontWeight.w900,
         letterSpacing: 1.1,
@@ -197,32 +219,41 @@ class HttpTesterScreen extends ConsumerWidget {
     );
   }
 
-  Widget _metricTile(String label, String value, IconData icon) {
+  Widget _metricTile(
+    String label,
+    String value,
+    IconData icon,
+    ThemeData theme,
+  ) {
     return Container(
       padding: const EdgeInsets.all(16.0),
       decoration: BoxDecoration(
-        color: const Color(0xFFF5F5F5),
+        color: theme.colorScheme.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(8.0),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
-          Icon(icon, size: 16.0, color: Colors.black54),
+          Icon(
+            icon,
+            size: 16.0,
+            color: theme.colorScheme.onSurface.withAlpha(153),
+          ),
           const SizedBox(height: 8.0),
           Text(
             label,
-            style: const TextStyle(
+            style: TextStyle(
+              color: theme.colorScheme.onSurface.withAlpha(128),
               fontSize: 11.0,
-              color: Colors.grey,
               fontWeight: FontWeight.bold,
             ),
           ),
           Text(
             value,
-            style: const TextStyle(
+            style: TextStyle(
+              color: theme.colorScheme.onSurface,
               fontSize: 14.0,
               fontWeight: FontWeight.bold,
-              color: Colors.black,
             ),
           ),
         ],
@@ -230,18 +261,19 @@ class HttpTesterScreen extends ConsumerWidget {
     );
   }
 
-  Widget _codeBlock(String content, Color color) {
+  Widget _codeBlock(String content, Color color, ThemeData theme) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(16.0),
       decoration: BoxDecoration(
         color: color,
         borderRadius: BorderRadius.circular(8.0),
+        border: Border.all(color: theme.colorScheme.outlineVariant),
       ),
       child: Text(
         content,
-        style: const TextStyle(
-          color: Colors.white,
+        style: TextStyle(
+          color: theme.colorScheme.onSurface,
           fontSize: 11.0,
           fontFamily: 'monospace',
           height: 1.5,
@@ -250,12 +282,16 @@ class HttpTesterScreen extends ConsumerWidget {
     );
   }
 
-  InputDecoration _inputStyle(String label) {
+  InputDecoration _inputStyle(String label, ThemeData theme) {
     return InputDecoration(
       labelText: label,
-      labelStyle: const TextStyle(fontSize: 10.0, fontWeight: FontWeight.bold),
+      labelStyle: TextStyle(
+        color: theme.colorScheme.onSurface.withAlpha(179),
+        fontSize: 10.0,
+        fontWeight: FontWeight.bold,
+      ),
       filled: true,
-      fillColor: const Color(0xFFF5F5F5),
+      fillColor: theme.colorScheme.surfaceContainerHighest,
       border: OutlineInputBorder(
         borderSide: BorderSide.none,
         borderRadius: BorderRadius.circular(8.0),
