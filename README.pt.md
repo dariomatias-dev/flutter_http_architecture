@@ -24,6 +24,7 @@ Infraestrutura desacoplada para gerenciamento de requisições HTTP, baseada em 
   - [Objetivos e Benefícios](#objetivos-e-benefícios)
 - [Requisitos e Tecnologias](#requisitos-e-tecnologias)
 - [Instalação e Execução](#instalação-e-execução)
+- [Estrutura de Pastas](#estrutura-de-pastas)
 - [Componentes da Arquitetura](#componentes-da-arquitetura)
   - [HttpClient e Driver](#httpclient-e-driver)
   - [RequestExecutor](#requestexecutor)
@@ -33,7 +34,6 @@ Infraestrutura desacoplada para gerenciamento de requisições HTTP, baseada em 
 - [Funcionalidades Avançadas](#funcionalidades-avançadas)
   - [Upload de Arquivos (Multipart)](#upload-de-arquivos-multipart)
   - [Monitoramento e Diagnóstico (Logs)](#monitoramento-e-diagnóstico-logs)
-- [Estrutura de Pastas](#estrutura-de-pastas)
 - [Exemplos de Implementação](#exemplos-de-implementação)
 - [Licença](#licença)
 - [Autor](#autor)
@@ -109,6 +109,40 @@ flutter pub get
 
 ```bash
 flutter run
+```
+
+## Estrutura de Pastas
+
+```text
+lib/
+└─ src/
+   └─ core/
+      └─ http/
+         ├─ client/
+         │  ├─ http_client.dart            # Interface principal do cliente HTTP (contrato da arquitetura)
+         │  └─ dio_http_client.dart        # Implementação concreta usando o Dio
+         ├─ config/
+         │  └─ network_config.dart         # Configurações globais de rede (baseUrl, timeouts, headers padrão)
+         ├─ errors/
+         │  ├─ http_error.dart             # Modelo padronizado de erro da requisição
+         │  └─ http_error_type.dart        # Tipos semânticos de erro (timeout, network, server, etc.)
+         ├─ executor/
+         │  ├─ request_executor.dart       # Orquestra execução, retry e resiliência das requisições
+         │  └─ request_context.dart        # Contexto da requisição (tempo, retries, status, métricas)
+         ├─ interceptors/
+         │  └─ logging_interceptor.dart    # Intercepta e registra detalhes das requisições e respostas HTTP para debug
+         ├─ models/
+         │  └─ api_response.dart           # Modelo de resposta padronizada contendo dados, erro e informações da requisição
+         ├─ multipart/
+         │  ├─ http_multipart.dart         # Contrato base para requisições multipart (wrapper de FormData)
+         │  ├─ dio_http_multipart.dart     # Implementação do multipart usando Dio (FormData)
+         │  └─ multipart_helper.dart       # Constrói FormData e converte arquivos para MultipartFile
+         ├─ options/
+         │  └─ http_request_options.dart   # Define comportamentos específicos da requisição como retry, timeout e regras de execução
+         ├─ tokens/
+         │  └─ http_cancel_token.dart      # Controle de cancelamento de requisições em andamento
+         └─ types/
+            └─ progress_callback_http.dart # Callback para acompanhar progresso de upload/download
 ```
 
 ## Componentes da Arquitetura
@@ -228,40 +262,6 @@ Registrado em casos de falha técnica ou de protocolo, exibindo o diagnóstico d
 │   #0      RequestExecutor.execute (package:flutter_http_architecture/...)
 │   #1      DioHttpClient._request (package:flutter_http_architecture/...)
 └────────────────────────────────────────
-```
-
-## Estrutura de Pastas
-
-```text
-lib/
-└─ src/
-   └─ core/
-      └─ http/
-         ├─ client/
-         │  ├─ http_client.dart            # Interface principal do cliente HTTP (contrato da arquitetura)
-         │  └─ dio_http_client.dart        # Implementação concreta usando o Dio
-         ├─ config/
-         │  └─ network_config.dart         # Configurações globais de rede (baseUrl, timeouts, headers padrão)
-         ├─ errors/
-         │  ├─ http_error.dart             # Modelo padronizado de erro da requisição
-         │  └─ http_error_type.dart        # Tipos semânticos de erro (timeout, network, server, etc.)
-         ├─ executor/
-         │  ├─ request_executor.dart       # Orquestra execução, retry e resiliência das requisições
-         │  └─ request_context.dart        # Contexto da requisição (tempo, retries, status, métricas)
-         ├─ interceptors/
-         │  └─ logging_interceptor.dart    # Intercepta e registra detalhes das requisições e respostas HTTP para debug
-         ├─ models/
-         │  └─ api_response.dart           # Modelo de resposta padronizada contendo dados, erro e informações da requisição
-         ├─ multipart/
-         │  ├─ http_multipart.dart         # Contrato base para requisições multipart (wrapper de FormData)
-         │  ├─ dio_http_multipart.dart     # Implementação do multipart usando Dio (FormData)
-         │  └─ multipart_helper.dart       # Constrói FormData e converte arquivos para MultipartFile
-         ├─ options/
-         │  └─ http_request_options.dart   # Define comportamentos específicos da requisição como retry, timeout e regras de execução
-         ├─ tokens/
-         │  └─ http_cancel_token.dart      # Controle de cancelamento de requisições em andamento
-         └─ types/
-            └─ progress_callback_http.dart # Callback para acompanhar progresso de upload/download
 ```
 
 ## Exemplos de Implementação
