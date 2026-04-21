@@ -42,7 +42,6 @@ class RequestExecutor {
       } on DioException catch (err) {
         final error = _mapDioError(err);
 
-        context.retryCount = attempt;
         context.error = error;
         context.statusCode = err.response?.statusCode;
         context.duration = DateTime.now().difference(context.startTime);

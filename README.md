@@ -119,31 +119,127 @@ lib/
    └─ core/
       └─ http/
          ├─ client/
-         │  ├─ http_client.dart            # Main HTTP client interface (architecture contract)
-         │  └─ dio_http_client.dart        # Concrete implementation using Dio
+         │  ├─ http_client.dart
+         │  └─ dio_http_client.dart
          ├─ config/
-         │  └─ network_config.dart         # Global network configurations (baseUrl, timeouts, default headers)
+         │  └─ network_config.dart
          ├─ errors/
-         │  ├─ http_error.dart             # Standardized request error model
-         │  └─ http_error_type.dart        # Semantic error types (timeout, network, server, etc.)
+         │  ├─ http_error.dart
+         │  └─ http_error_type.dart
          ├─ executor/
-         │  ├─ request_executor.dart       # Orchestrates execution, retry, and request resilience
-         │  └─ request_context.dart        # Request context (time, retries, status, metrics)
+         │  ├─ request_executor.dart
+         │  └─ request_context.dart
          ├─ interceptors/
-         │  └─ logging_interceptor.dart    # Intercepts and logs HTTP request and response details for debugging
+         │  └─ logging_interceptor.dart
          ├─ models/
-         │  └─ api_response.dart           # Standardized response model containing data, error, and request info
+         │  └─ api_response.dart
          ├─ multipart/
-         │  ├─ http_multipart.dart         # Base contract for multipart requests (FormData wrapper)
-         │  ├─ dio_http_multipart.dart     # Multipart implementation using Dio (FormData)
-         │  └─ multipart_helper.dart       # Builds FormData and converts files to MultipartFile
+         │  ├─ http_multipart.dart
+         │  ├─ dio_http_multipart.dart
+         │  └─ multipart_helper.dart
          ├─ options/
-         │  └─ http_request_options.dart   # Defines specific request behaviors like retry, timeout, and execution rules
+         │  └─ http_request_options.dart
          ├─ tokens/
-         │  └─ http_cancel_token.dart      # Control for canceling ongoing requests
-         └─ types/
-            └─ progress_callback_http.dart # Callback to track upload/download progress
+         │  └─ http_cancel_token.dart
+         ├─ types/
+         │  └─ progress_callback_http.dart
+         └─ utils/
+            └─ log_sanitizer.dart
 ```
+
+---
+
+## client
+
+Defines the HTTP client contract and its concrete implementation using Dio.
+Responsible for fully abstracting the network engine from the architecture.
+
+- `http_client.dart` → Main HTTP client contract of the architecture
+- `dio_http_client.dart` → Concrete implementation using Dio
+
+---
+
+## config
+
+Centralizes all global network configurations of the application.
+
+- `network_config.dart` → Defines baseUrl, timeouts, and default headers
+
+---
+
+## errors
+
+Responsible for standardizing and categorizing HTTP errors in a semantic way.
+
+- `http_error.dart` → Standard request error model
+- `http_error_type.dart` → Semantic HTTP error types
+
+---
+
+## executor
+
+Layer responsible for executing HTTP requests with flow control, retry, and metrics.
+
+- `request_executor.dart` → Orchestrates execution, retry, and resilience
+- `request_context.dart` → Request context (time, status, retries, and metrics)
+
+---
+
+## interceptors
+
+Interception layer used for logging and HTTP cycle diagnostics.
+
+- `logging_interceptor.dart` → Intercepts and logs requests, responses, and errors
+
+---
+
+## models
+
+Contains standardized response models for the HTTP layer.
+
+- `api_response.dart` → Standard wrapper containing data, error, and context
+
+---
+
+## multipart
+
+Responsible for abstracting file uploads via multipart/form-data.
+
+- `http_multipart.dart` → Base multipart contract
+- `dio_http_multipart.dart` → Dio/FormData implementation
+- `multipart_helper.dart` → Converts files into FormData
+
+---
+
+## options
+
+Defines request-specific configurations applied per HTTP call.
+
+- `http_request_options.dart` → Timeout, retry, and execution rules
+
+---
+
+## tokens
+
+Responsible for controlling request cancellation.
+
+- `http_cancel_token.dart` → Abstraction for canceling ongoing requests
+
+---
+
+## types
+
+Defines auxiliary types used in the HTTP layer.
+
+- `progress_callback_http.dart` → Upload/download progress callback
+
+---
+
+## utils
+
+Internal utility helpers for the HTTP infrastructure.
+
+- `log_sanitizer.dart` → Removes/sanitizes sensitive data before logging
 
 ## Architecture Components
 
