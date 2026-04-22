@@ -6,7 +6,9 @@ import 'package:flutter_http_architecture/src/core/constants/retry_attempts.dart
 import 'package:flutter_http_architecture/src/core/di/theme_notifier_provider.dart';
 
 import 'package:flutter_http_architecture/src/features/http_tester/di/http_tester_providers.dart';
+import 'package:flutter_http_architecture/src/features/http_tester/presentation/widgets/response_section_widget.dart';
 
+import 'package:flutter_http_architecture/src/shared/widgets/button_widget.dart';
 import 'package:flutter_http_architecture/src/shared/widgets/dropdown_widget.dart';
 
 final statusCodes = <int>[200, 201, 401, 404, 429, 500, 503, 504];
@@ -97,92 +99,24 @@ class HttpTesterScreen extends ConsumerWidget {
                 ),
               ),
               const SizedBox(height: 24.0),
-              SizedBox(
-                width: double.infinity,
-                height: 54.0,
-                child: ElevatedButton(
-                  onPressed: isLoading ? null : notifier.runRequest,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: theme.colorScheme.primary,
-                    foregroundColor: theme.colorScheme.onPrimary,
-                    elevation: 0.0,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8.0),
-                    ),
-                  ),
-                  child: const Text(
-                    'EXECUTE REQUEST',
-                    style: TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                ),
+              ButtonWidget(
+                label: 'EXECUTE REQUEST',
+                onPressed: notifier.runRequest,
+                isLoading: isLoading,
               ),
               const Padding(
                 padding: EdgeInsets.symmetric(vertical: 28.0),
                 child: Divider(),
               ),
               if (isLoading)
-                Center(
-                  child: Column(
-                    children: <Widget>[
-                      const SizedBox(height: 40.0),
-                      CircularProgressIndicator(
-                        color: theme.colorScheme.primary,
-                        strokeWidth: 2.0,
-                      ),
-                      const SizedBox(height: 16.0),
-                      Text(
-                        'WAITING FOR RESPONSE...',
-                        style: TextStyle(
-                          fontSize: 10.0,
-                          fontWeight: FontWeight.w900,
-                          letterSpacing: 2.0,
-                          color: theme.colorScheme.onSurface.withAlpha(153),
-                        ),
-                      ),
-                    ],
-                  ),
-                )
-              else if (stateData.result.isNotEmpty) ...<Widget>[
-                _sectionTitle('METRICS & PERFORMANCE', theme),
-                const SizedBox(height: 12.0),
-                Row(
-                  children: <Widget>[
-                    Expanded(
-                      child: _metricTile(
-                        'Latency',
-                        stateData.duration,
-                        Icons.speed,
-                        theme,
-                      ),
-                    ),
-                    const SizedBox(width: 12.0),
-                    Expanded(
-                      child: _metricTile(
-                        'Retry Count',
-                        '${stateData.actualRetries}',
-                        Icons.refresh,
-                        theme,
-                      ),
-                    ),
-                  ],
+                _loadingState(theme)
+              else if (stateData.result.isNotEmpty)
+                ResponseSectionWidget(
+                  duration: stateData.duration,
+                  actualRetries: stateData.actualRetries,
+                  body: stateData.result,
+                  headers: stateData.headers,
                 ),
-                const SizedBox(height: 24.0),
-                _sectionTitle('RESPONSE BODY', theme),
-                const SizedBox(height: 12.0),
-                _codeBlock(
-                  stateData.result,
-                  theme.colorScheme.surfaceContainerHighest,
-                  theme,
-                ),
-                const SizedBox(height: 24.0),
-                _sectionTitle('HEADERS', theme),
-                const SizedBox(height: 12.0),
-                _codeBlock(
-                  stateData.headers,
-                  theme.colorScheme.surfaceContainerHighest.withAlpha(179),
-                  theme,
-                ),
-              ],
             ],
           ),
         ),
@@ -202,65 +136,26 @@ class HttpTesterScreen extends ConsumerWidget {
     );
   }
 
-  Widget _metricTile(
-    String label,
-    String value,
-    IconData icon,
-    ThemeData theme,
-  ) {
-    return Container(
-      padding: const EdgeInsets.all(16.0),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(8.0),
-      ),
+  Widget _loadingState(ThemeData theme) {
+    return Center(
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
-          Icon(
-            icon,
-            size: 16.0,
-            color: theme.colorScheme.onSurface.withAlpha(153),
+          const SizedBox(height: 40.0),
+          CircularProgressIndicator(
+            color: theme.colorScheme.primary,
+            strokeWidth: 2.0,
           ),
-          const SizedBox(height: 8.0),
+          const SizedBox(height: 16.0),
           Text(
-            label,
+            'WAITING FOR RESPONSE...',
             style: TextStyle(
-              color: theme.colorScheme.onSurface.withAlpha(128),
-              fontSize: 11.0,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          Text(
-            value,
-            style: TextStyle(
-              color: theme.colorScheme.onSurface,
-              fontSize: 14.0,
-              fontWeight: FontWeight.bold,
+              fontSize: 10.0,
+              fontWeight: FontWeight.w900,
+              letterSpacing: 2.0,
+              color: theme.colorScheme.onSurface.withAlpha(153),
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _codeBlock(String content, Color color, ThemeData theme) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(16.0),
-      decoration: BoxDecoration(
-        color: color,
-        borderRadius: BorderRadius.circular(8.0),
-        border: Border.all(color: theme.colorScheme.outlineVariant),
-      ),
-      child: Text(
-        content,
-        style: TextStyle(
-          color: theme.colorScheme.onSurface,
-          fontSize: 11.0,
-          fontFamily: 'monospace',
-          height: 1.5,
-        ),
       ),
     );
   }
