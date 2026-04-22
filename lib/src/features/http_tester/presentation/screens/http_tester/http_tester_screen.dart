@@ -5,6 +5,8 @@ import 'package:flutter_http_architecture/src/core/di/theme_notifier_provider.da
 
 import 'package:flutter_http_architecture/src/features/http_tester/di/http_tester_providers.dart';
 
+import 'package:flutter_http_architecture/src/shared/widgets/dropdown_widget.dart';
+
 final methods = <String>['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'];
 final retryOptions = <int>[0, 1, 2, 3, 4, 5];
 final statusCodes = <int>[200, 201, 401, 404, 429, 500, 503, 504];
@@ -53,16 +55,10 @@ class HttpTesterScreen extends ConsumerWidget {
               Row(
                 children: <Widget>[
                   Expanded(
-                    child: DropdownButtonFormField<String>(
+                    child: DropdownWidget<String>(
+                      label: 'METHOD',
                       initialValue: stateData.method,
-                      decoration: _inputStyle('METHOD', theme),
-                      dropdownColor: theme.colorScheme.surface,
-                      items: methods.map<DropdownMenuItem<String>>((method) {
-                        return DropdownMenuItem<String>(
-                          value: method,
-                          child: Text(method),
-                        );
-                      }).toList(),
+                      items: methods,
                       onChanged: isLoading
                           ? null
                           : (v) => notifier.updateMethod(v!),
@@ -70,18 +66,10 @@ class HttpTesterScreen extends ConsumerWidget {
                   ),
                   const SizedBox(width: 16.0),
                   Expanded(
-                    child: DropdownButtonFormField<int>(
+                    child: DropdownWidget<int>(
+                      label: 'STATUS',
                       initialValue: stateData.statusCode,
-                      decoration: _inputStyle('STATUS', theme),
-                      dropdownColor: theme.colorScheme.surface,
-                      items: statusCodes.map<DropdownMenuItem<int>>((
-                        statusCode,
-                      ) {
-                        return DropdownMenuItem<int>(
-                          value: statusCode,
-                          child: Text(statusCode.toString()),
-                        );
-                      }).toList(),
+                      items: statusCodes,
                       onChanged: isLoading
                           ? null
                           : (v) => notifier.updateStatus(v!),
@@ -90,16 +78,11 @@ class HttpTesterScreen extends ConsumerWidget {
                 ],
               ),
               const SizedBox(height: 16.0),
-              DropdownButtonFormField<int>(
+              DropdownWidget<int>(
+                label: 'MAX RETRIES',
                 initialValue: stateData.maxRetries,
-                decoration: _inputStyle('MAX RETRIES', theme),
-                dropdownColor: theme.colorScheme.surface,
-                items: retryOptions.map<DropdownMenuItem<int>>((retryOption) {
-                  return DropdownMenuItem<int>(
-                    value: retryOption,
-                    child: Text('$retryOption Attempts'),
-                  );
-                }).toList(),
+                items: retryOptions,
+                itemLabelBuilder: (value) => '$value Attempts',
                 onChanged: isLoading
                     ? null
                     : (v) => notifier.updateRetryCount(v!),
@@ -278,23 +261,6 @@ class HttpTesterScreen extends ConsumerWidget {
           fontFamily: 'monospace',
           height: 1.5,
         ),
-      ),
-    );
-  }
-
-  InputDecoration _inputStyle(String label, ThemeData theme) {
-    return InputDecoration(
-      labelText: label,
-      labelStyle: TextStyle(
-        color: theme.colorScheme.onSurface.withAlpha(179),
-        fontSize: 10.0,
-        fontWeight: FontWeight.bold,
-      ),
-      filled: true,
-      fillColor: theme.colorScheme.surfaceContainerHighest,
-      border: OutlineInputBorder(
-        borderSide: BorderSide.none,
-        borderRadius: BorderRadius.circular(8.0),
       ),
     );
   }
