@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:flutter_http_architecture/src/core/constants/methods.dart';
+import 'package:flutter_http_architecture/src/core/constants/retry_attempts.dart';
 import 'package:flutter_http_architecture/src/core/di/theme_notifier_provider.dart';
 
 import 'package:flutter_http_architecture/src/features/http_tester/di/http_tester_providers.dart';
 
 import 'package:flutter_http_architecture/src/shared/widgets/dropdown_widget.dart';
 
-final methods = <String>['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'];
-final retryOptions = <int>[0, 1, 2, 3, 4, 5];
 final statusCodes = <int>[200, 201, 401, 404, 429, 500, 503, 504];
 
 class HttpTesterScreen extends ConsumerWidget {
@@ -81,7 +81,7 @@ class HttpTesterScreen extends ConsumerWidget {
               DropdownWidget<int>(
                 label: 'MAX RETRIES',
                 initialValue: stateData.maxRetries,
-                items: retryOptions,
+                items: retryAttempts,
                 itemLabelBuilder: (value) => '$value Attempts',
                 onChanged: isLoading
                     ? null
