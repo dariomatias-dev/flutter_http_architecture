@@ -1,21 +1,19 @@
 import 'package:flutter/material.dart';
 
 class InputFieldWidget extends StatefulWidget {
-  final String initialValue;
-  final ValueChanged<String> onChanged;
+  final TextEditingController? controller;
   final String? label;
-  final String? hintText;
   final int? maxLines;
   final TextStyle? textStyle;
+  final bool enabled;
 
   const InputFieldWidget({
     super.key,
-    required this.initialValue,
-    required this.onChanged,
+    this.controller,
     this.label,
-    this.hintText,
     this.maxLines,
     this.textStyle,
+    this.enabled = true,
   });
 
   @override
@@ -23,21 +21,14 @@ class InputFieldWidget extends StatefulWidget {
 }
 
 class _InputFieldWidgetState extends State<InputFieldWidget> {
-  late final _controller = TextEditingController(text: widget.initialValue);
-
-  @override
-  void initState() {
-    super.initState();
-
-    _controller.addListener(() {
-      setState(() {});
-      widget.onChanged(_controller.text);
-    });
-  }
+  late final _controller = widget.controller ?? TextEditingController();
 
   @override
   void dispose() {
-    _controller.dispose();
+    if (widget.controller == null) {
+      _controller.dispose();
+    }
+
     super.dispose();
   }
 
@@ -47,13 +38,13 @@ class _InputFieldWidgetState extends State<InputFieldWidget> {
 
     return TextFormField(
       controller: _controller,
+      enabled: widget.enabled,
       maxLines: widget.maxLines ?? 1,
       style:
           widget.textStyle ??
           const TextStyle(fontSize: 13.0, fontWeight: FontWeight.w500),
       decoration: InputDecoration(
         labelText: widget.label,
-        hintText: widget.hintText,
         labelStyle: TextStyle(
           color: theme.colorScheme.onSurface.withAlpha(150),
           fontSize: 9.0,
@@ -69,7 +60,7 @@ class _InputFieldWidgetState extends State<InputFieldWidget> {
           horizontal: 12.0,
           vertical: 8.0,
         ),
-        suffixIcon: _controller.text.isNotEmpty
+        suffixIcon: _controller.text.isNotEmpty && widget.enabled
             ? IconButton(
                 onPressed: _controller.clear,
                 icon: const Icon(Icons.clear, size: 20.0),

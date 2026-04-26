@@ -1,54 +1,37 @@
-import 'package:flutter_http_architecture/src/features/http_workbench/domain/entities/http_advanced_item.dart';
-import 'package:flutter_http_architecture/src/features/http_workbench/presentation/viewmodels/http_advanced_state.dart';
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class HttpAdvancedNotifier extends Notifier<HttpAdvancedState> {
+import 'package:flutter_http_architecture/src/features/http_workbench/di/http_workbench_providers.dart';
+import 'package:flutter_http_architecture/src/features/http_workbench/presentation/viewmodels/http_advanced_state.dart';
+
+class HttpAdvancedNotifier extends AsyncNotifier<HttpAdvancedState> {
   @override
-  HttpAdvancedState build() => HttpAdvancedState.initial();
+  FutureOr<HttpAdvancedState> build() => HttpAdvancedState.initial();
 
-  void updateMethod(String value) => state = state.copyWith(method: value);
+  Future<void> executeRequest({
+    required String method,
+    required String url,
+    required String body,
+    required List<Map<String, String>> headers,
+    required List<Map<String, String>> queryParams,
+  }) async {
+    final currentData = state.value ?? HttpAdvancedState.initial();
 
-  void updateUrl(String value) => state = state.copyWith(url: value);
+    state = const AsyncLoading<HttpAdvancedState>();
 
-  void addHeader() {
-    state = state.copyWith(
-      headers: <HttpAdvancedItem>[...state.headers, HttpAdvancedItem()],
-    );
+    state = await AsyncValue.guard(() async {
+      final vm = ref.read(httpAdvancedViewModelProvider);
+
+      final requestState = currentData.copyWith(
+        method: method,
+        url: url,
+        body: body,
+      );
+
+      final res = await vm.execute(requestState);
+
+      return requestState.copyWith(response: res);
+    });
   }
-
-  void removeHeader(String id) {
-    state = state.copyWith(
-      headers: state.headers.where((e) => e.id != id).toList(),
-    );
-  }
-
-  void updateHeader(String id, {String? key, String? value}) {
-    state = state.copyWith(
-      headers: state.headers.map((e) {
-        return e.id == id ? e.copyWith(key: key, value: value) : e;
-      }).toList(),
-    );
-  }
-
-  void addQueryParam() {
-    state = state.copyWith(
-      queryParams: <HttpAdvancedItem>[...state.queryParams, HttpAdvancedItem()],
-    );
-  }
-
-  void removeQueryParam(String id) {
-    state = state.copyWith(
-      queryParams: state.queryParams.where((e) => e.id != id).toList(),
-    );
-  }
-
-  void updateQueryParam(String id, {String? key, String? value}) {
-    state = state.copyWith(
-      queryParams: state.queryParams.map((e) {
-        return e.id == id ? e.copyWith(key: key, value: value) : e;
-      }).toList(),
-    );
-  }
-
-  void updateRetries(int value) => state = state.copyWith(maxRetries: value);
 }

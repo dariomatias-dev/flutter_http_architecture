@@ -19,6 +19,7 @@ class HttpWorkbenchScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
+        surfaceTintColor: theme.scaffoldBackgroundColor,
         title: const Text(
           'HTTP ARCHITECTURE',
           style: TextStyle(

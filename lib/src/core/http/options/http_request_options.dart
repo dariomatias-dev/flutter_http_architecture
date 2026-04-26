@@ -1,5 +1,5 @@
 class HttpRequestOptions {
-  final Map<String, String>? headers;
+  final Map<String, dynamic>? headers;
   final Duration? sendTimeout;
   final Duration? receiveTimeout;
   final String? contentType;
