@@ -1,3 +1,5 @@
+import 'package:flutter_http_architecture/src/features/http_workbench/presentation/providers/http_advanced_notifier.dart';
+import 'package:flutter_http_architecture/src/features/http_workbench/presentation/viewmodels/http_advanced_state.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:flutter_http_architecture/src/core/di/network_providers.dart';
@@ -28,3 +30,8 @@ final httpSimpleNotifierProvider =
 final httpModeProvider = NotifierProvider<HttpModeNotifier, HttpMode>(
   HttpModeNotifier.new,
 );
+
+final httpAdvancedProvider =
+    NotifierProvider<HttpAdvancedNotifier, HttpAdvancedState>(
+      HttpAdvancedNotifier.new,
+    );
