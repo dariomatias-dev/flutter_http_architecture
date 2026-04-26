@@ -1,18 +1,18 @@
 import 'dart:convert';
 
-import 'package:flutter_http_architecture/src/features/http_tester/domain/repositories/http_tester_repository.dart';
+import 'package:flutter_http_architecture/src/features/http_workbench/data/services/http_tester_service.dart';
 
-class HttpTesterViewModel {
-  final HttpTesterRepository _repository;
+class HttpSimpleViewModel {
+  final HttpTesterService _service;
 
-  HttpTesterViewModel(this._repository);
+  HttpSimpleViewModel(this._service);
 
   Future<Map<String, String>> executeAndFormat({
     required String method,
     required int statusCode,
     required int maxRetries,
   }) async {
-    final response = await _repository.executeRequest(
+    final response = await _service.executeRequest(
       method: method,
       statusCode: statusCode,
       maxRetries: maxRetries,

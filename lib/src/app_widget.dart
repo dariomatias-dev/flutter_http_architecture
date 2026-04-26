@@ -4,7 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_http_architecture/src/core/di/theme_notifier_provider.dart';
 import 'package:flutter_http_architecture/src/core/theme/app_theme.dart';
 
-import 'package:flutter_http_architecture/src/features/http_tester/presentation/screens/http_workbench/http_workbench_screen.dart';
+import 'package:flutter_http_architecture/src/features/http_workbench/presentation/screens/http_workbench/http_workbench_screen.dart';
 
 class AppWidget extends ConsumerWidget {
   const AppWidget({super.key});

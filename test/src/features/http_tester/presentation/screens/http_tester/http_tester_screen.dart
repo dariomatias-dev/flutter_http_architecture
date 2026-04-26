@@ -2,24 +2,24 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:flutter_http_architecture/src/features/http_tester/di/http_tester_providers.dart';
-import 'package:flutter_http_architecture/src/features/http_tester/presentation/screens/http_tester/http_tester_screen.dart';
-import 'package:flutter_http_architecture/src/features/http_tester/presentation/viewmodels/http_tester_view_state.dart';
+import 'package:flutter_http_architecture/src/features/http_workbench/di/http_workbench_providers.dart';
+import 'package:flutter_http_architecture/src/features/http_workbench/presentation/screens/http_simple/http_simple_screen.dart';
+import 'package:flutter_http_architecture/src/features/http_workbench/presentation/viewmodels/http_simple_view_state.dart';
 
 import '../../../data/fakes/fake_http_tester_notifier.dart';
 
 void main() {
-  Widget createWidget(HttpTesterViewState state) {
+  Widget createWidget(HttpSimpleViewState state) {
     return ProviderScope(
       overrides: [
-        httpTesterNotifierProvider.overrideWith(FakeHttpTesterNotifier.new),
+        httpSimpleNotifierProvider.overrideWith(FakeHttpTesterNotifier.new),
       ],
-      child: const MaterialApp(home: HttpTesterScreen()),
+      child: const MaterialApp(home: HttpSimpleScreen()),
     );
   }
 
   testWidgets('renders initial UI components', (tester) async {
-    await tester.pumpWidget(createWidget(HttpTesterViewState()));
+    await tester.pumpWidget(createWidget(HttpSimpleViewState()));
 
     expect(find.text('REQUEST CONFIGURATION'), findsOneWidget);
     expect(find.text('EXECUTE REQUEST'), findsOneWidget);
@@ -32,7 +32,7 @@ void main() {
   ) async {
     await tester.pumpWidget(
       createWidget(
-        HttpTesterViewState(
+        HttpSimpleViewState(
           result: 'SUCCESS\nCode: 200\nData: ok',
           headers: '{ "content-type": "json" }',
           duration: '120ms',
@@ -50,7 +50,7 @@ void main() {
   testWidgets('displays retry and latency metrics', (tester) async {
     await tester.pumpWidget(
       createWidget(
-        HttpTesterViewState(
+        HttpSimpleViewState(
           result: 'ok',
           headers: '{}',
           duration: '250ms',
@@ -66,7 +66,7 @@ void main() {
   });
 
   testWidgets('button exists and is enabled when not loading', (tester) async {
-    await tester.pumpWidget(createWidget(HttpTesterViewState()));
+    await tester.pumpWidget(createWidget(HttpSimpleViewState()));
 
     final button = tester.widget<ElevatedButton>(find.byType(ElevatedButton));
 

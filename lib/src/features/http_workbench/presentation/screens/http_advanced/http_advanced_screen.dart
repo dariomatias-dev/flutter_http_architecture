@@ -4,20 +4,20 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_http_architecture/src/core/constants/methods.dart';
 import 'package:flutter_http_architecture/src/core/constants/retry_attempts.dart';
 
-import 'package:flutter_http_architecture/src/features/http_tester/di/http_tester_providers.dart';
-import 'package:flutter_http_architecture/src/features/http_tester/presentation/widgets/response_section_widget.dart';
+import 'package:flutter_http_architecture/src/features/http_workbench/di/http_workbench_providers.dart';
+import 'package:flutter_http_architecture/src/features/http_workbench/presentation/widgets/response_section_widget.dart';
 
 import 'package:flutter_http_architecture/src/shared/widgets/button_widget.dart';
 import 'package:flutter_http_architecture/src/shared/widgets/dropdown_widget.dart';
 
-class HttpPlaygroundScreen extends ConsumerWidget {
-  const HttpPlaygroundScreen({super.key});
+class HttpAdvancedScreen extends ConsumerWidget {
+  const HttpAdvancedScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
-    final asyncState = ref.watch(httpTesterNotifierProvider);
-    final notifier = ref.read(httpTesterNotifierProvider.notifier);
+    final asyncState = ref.watch(httpSimpleNotifierProvider);
+    final notifier = ref.read(httpSimpleNotifierProvider.notifier);
 
     final stateData = asyncState.requireValue;
     final isLoading = asyncState.isLoading;

@@ -3,10 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:flutter_http_architecture/src/core/di/theme_notifier_provider.dart';
 
-import 'package:flutter_http_architecture/src/features/http_tester/di/http_tester_providers.dart';
-import 'package:flutter_http_architecture/src/features/http_tester/presentation/providers/http_mode_notifier.dart';
-import 'package:flutter_http_architecture/src/features/http_tester/presentation/screens/http_playground/http_playground_screen.dart';
-import 'package:flutter_http_architecture/src/features/http_tester/presentation/screens/http_tester/http_tester_screen.dart';
+import 'package:flutter_http_architecture/src/features/http_workbench/di/http_workbench_providers.dart';
+import 'package:flutter_http_architecture/src/features/http_workbench/presentation/providers/http_mode_notifier.dart';
+import 'package:flutter_http_architecture/src/features/http_workbench/presentation/screens/http_advanced/http_advanced_screen.dart';
+import 'package:flutter_http_architecture/src/features/http_workbench/presentation/screens/http_simple/http_simple_screen.dart';
 
 class HttpWorkbenchScreen extends ConsumerWidget {
   const HttpWorkbenchScreen({super.key});
@@ -107,8 +107,8 @@ class HttpWorkbenchScreen extends ConsumerWidget {
             ),
             Expanded(
               child: mode == HttpMode.simple
-                  ? const HttpTesterScreen()
-                  : const HttpPlaygroundScreen(),
+                  ? const HttpSimpleScreen()
+                  : const HttpAdvancedScreen(),
             ),
           ],
         ),

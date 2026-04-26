@@ -1,4 +1,4 @@
-class HttpTesterViewState {
+class HttpSimpleViewState {
   final String method;
   final int statusCode;
   final int maxRetries;
@@ -7,7 +7,7 @@ class HttpTesterViewState {
   final String duration;
   final int actualRetries;
 
-  HttpTesterViewState({
+  HttpSimpleViewState({
     this.method = 'GET',
     this.statusCode = 200,
     this.maxRetries = 0,
@@ -17,7 +17,7 @@ class HttpTesterViewState {
     this.actualRetries = 0,
   });
 
-  HttpTesterViewState copyWith({
+  HttpSimpleViewState copyWith({
     String? method,
     int? statusCode,
     int? maxRetries,
@@ -26,7 +26,7 @@ class HttpTesterViewState {
     String? duration,
     int? actualRetries,
   }) {
-    return HttpTesterViewState(
+    return HttpSimpleViewState(
       method: method ?? this.method,
       statusCode: statusCode ?? this.statusCode,
       maxRetries: maxRetries ?? this.maxRetries,

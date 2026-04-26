@@ -2,13 +2,13 @@ import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:flutter_http_architecture/src/features/http_tester/di/http_tester_providers.dart';
-import 'package:flutter_http_architecture/src/features/http_tester/presentation/viewmodels/http_tester_view_state.dart';
+import 'package:flutter_http_architecture/src/features/http_workbench/di/http_workbench_providers.dart';
+import 'package:flutter_http_architecture/src/features/http_workbench/presentation/viewmodels/http_simple_view_state.dart';
 
-class HttpTesterNotifier extends AsyncNotifier<HttpTesterViewState> {
+class HttpSimpleNotifier extends AsyncNotifier<HttpSimpleViewState> {
   @override
-  FutureOr<HttpTesterViewState> build() {
-    return HttpTesterViewState();
+  FutureOr<HttpSimpleViewState> build() {
+    return HttpSimpleViewState();
   }
 
   void updateMethod(String method) {
@@ -32,7 +32,7 @@ class HttpTesterNotifier extends AsyncNotifier<HttpTesterViewState> {
   Future<void> runRequest() async {
     final current = state.requireValue;
 
-    final viewModel = ref.read(httpTesterViewModelProvider);
+    final viewModel = ref.read(httpSimpleViewModelProvider);
 
     state = const AsyncLoading();
 

@@ -2,7 +2,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:flutter_http_architecture/src/app_widget.dart';
-import 'package:flutter_http_architecture/src/features/http_tester/presentation/screens/http_tester/http_tester_screen.dart';
+
+import 'package:flutter_http_architecture/src/features/http_workbench/presentation/screens/http_workbench/http_workbench_screen.dart';
 
 void main() {
   testWidgets('AppWidget loads initial screen correctly', (tester) async {
@@ -10,6 +11,6 @@ void main() {
 
     await tester.pump();
 
-    expect(find.byType(HttpTesterScreen), findsOneWidget);
+    expect(find.byType(HttpWorkbenchScreen), findsOneWidget);
   });
 }
