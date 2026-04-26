@@ -4,12 +4,18 @@ class InputFieldWidget extends StatefulWidget {
   final String initialValue;
   final ValueChanged<String> onChanged;
   final String? label;
+  final String? hintText;
+  final int? maxLines;
+  final TextStyle? textStyle;
 
   const InputFieldWidget({
     super.key,
     required this.initialValue,
     required this.onChanged,
     this.label,
+    this.hintText,
+    this.maxLines,
+    this.textStyle,
   });
 
   @override
@@ -25,7 +31,6 @@ class _InputFieldWidgetState extends State<InputFieldWidget> {
 
     _controller.addListener(() {
       setState(() {});
-
       widget.onChanged(_controller.text);
     });
   }
@@ -33,7 +38,6 @@ class _InputFieldWidgetState extends State<InputFieldWidget> {
   @override
   void dispose() {
     _controller.dispose();
-
     super.dispose();
   }
 
@@ -43,9 +47,13 @@ class _InputFieldWidgetState extends State<InputFieldWidget> {
 
     return TextFormField(
       controller: _controller,
-      style: const TextStyle(fontSize: 13.0, fontWeight: FontWeight.w500),
+      maxLines: widget.maxLines ?? 1,
+      style:
+          widget.textStyle ??
+          const TextStyle(fontSize: 13.0, fontWeight: FontWeight.w500),
       decoration: InputDecoration(
         labelText: widget.label,
+        hintText: widget.hintText,
         labelStyle: TextStyle(
           color: theme.colorScheme.onSurface.withAlpha(150),
           fontSize: 9.0,
