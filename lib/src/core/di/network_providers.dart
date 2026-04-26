@@ -5,16 +5,16 @@ import 'package:flutter_http_architecture/src/core/http/client/dio_http_client.d
 import 'package:flutter_http_architecture/src/core/http/client/http_client.dart';
 import 'package:flutter_http_architecture/src/core/http/config/network_config.dart';
 
-final networkConfigProvider = Provider<NetworkConfig>((ref) {
-  return const NetworkConfig(
-    baseUrl: ApiUrls.httpbin,
-    connectTimeout: Duration(seconds: 15),
-    receiveTimeout: Duration(seconds: 15),
+final httpBinClientProvider = Provider<HttpClient>((ref) {
+  return DioHttpClient(
+    config: const NetworkConfig(
+      baseUrl: ApiUrls.httpbin,
+      connectTimeout: Duration(seconds: 15),
+      receiveTimeout: Duration(seconds: 15),
+    ),
   );
 });
 
-final httpBinClientProvider = Provider<HttpClient>((ref) {
-  final config = ref.watch(networkConfigProvider);
-
-  return DioHttpClient(config: config);
+final httpClientProvider = Provider<HttpClient>((ref) {
+  return DioHttpClient(config: const NetworkConfig());
 });
