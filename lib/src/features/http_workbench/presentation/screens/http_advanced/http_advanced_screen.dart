@@ -5,22 +5,21 @@ import 'package:flutter_http_architecture/src/core/constants/methods.dart';
 import 'package:flutter_http_architecture/src/core/constants/retry_attempts.dart';
 
 import 'package:flutter_http_architecture/src/features/http_workbench/di/http_workbench_providers.dart';
-import 'package:flutter_http_architecture/src/features/http_workbench/presentation/widgets/response_section_widget.dart';
+import 'package:flutter_http_architecture/src/features/http_workbench/domain/entities/http_advanced_item.dart';
 
 import 'package:flutter_http_architecture/src/shared/widgets/button_widget.dart';
 import 'package:flutter_http_architecture/src/shared/widgets/dropdown_widget.dart';
+import 'package:flutter_http_architecture/src/shared/widgets/input_field_widget.dart';
 
 class HttpAdvancedScreen extends ConsumerWidget {
   const HttpAdvancedScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final theme = Theme.of(context);
-    final asyncState = ref.watch(httpSimpleNotifierProvider);
-    final notifier = ref.read(httpSimpleNotifierProvider.notifier);
+    final state = ref.watch(httpAdvancedProvider);
+    final notifier = ref.read(httpAdvancedProvider.notifier);
 
-    final stateData = asyncState.requireValue;
-    final isLoading = asyncState.isLoading;
+    final theme = Theme.of(context);
 
     return DefaultTabController(
       length: 3,
@@ -33,25 +32,54 @@ class HttpAdvancedScreen extends ConsumerWidget {
             const SizedBox(height: 16.0),
             DropdownWidget<String>(
               label: 'METHOD',
-              initialValue: stateData.method,
+              initialValue: state.method,
               items: methods,
-              onChanged: isLoading ? null : (v) => notifier.updateMethod(v!),
+              onChanged: (v) => notifier.updateMethod(v!),
             ),
             const SizedBox(height: 16.0),
-            TextFormField(
-              initialValue: 'https://api.example.com/v1/resource',
-              style: const TextStyle(
-                fontSize: 13.0,
-                fontWeight: FontWeight.w500,
-              ),
-              decoration: _inputStyle('URL ENDPOINT', theme),
+            InputFieldWidget(
+              initialValue: state.url,
+              label: 'URL ENDPOINT',
+              onChanged: notifier.updateUrl,
             ),
             const SizedBox(height: 28.0),
-            _sectionHeader('QUERY PARAMETERS', theme, onAdd: () {}),
-            _dynamicKeyValueRow(theme, 'page', '1'),
+            _DynamicInputSection<HttpAdvancedItem>(
+              title: 'QUERY PARAMETERS',
+              items: state.queryParams,
+              onAdd: notifier.addQueryParam,
+              itemBuilder: (item, index) => _DynamicKeyValueRow(
+                key: ValueKey(item.id),
+                initialKey: item.key,
+                initialValue: item.value,
+                onKeyChanged: (v) {
+                  notifier.updateQueryParam(item.id, key: v);
+                },
+                onValueChanged: (v) {
+                  notifier.updateQueryParam(item.id, value: v);
+                },
+                onDelete: () => notifier.removeQueryParam(item.id),
+              ),
+            ),
             const SizedBox(height: 20.0),
-            _sectionHeader('HEADERS', theme, onAdd: () {}),
-            _dynamicKeyValueRow(theme, 'Content-Type', 'application/json'),
+            _DynamicInputSection<HttpAdvancedItem>(
+              title: 'HEADERS',
+              items: state.headers,
+              onAdd: notifier.addHeader,
+              itemBuilder: (item, index) => _DynamicKeyValueRow(
+                key: ValueKey(item.id),
+                initialKey: item.key,
+                initialValue: item.value,
+                onKeyChanged: (v) {
+                  notifier.updateHeader(item.id, key: v);
+                },
+                onValueChanged: (v) {
+                  notifier.updateHeader(item.id, value: v);
+                },
+                onDelete: () {
+                  notifier.removeHeader(item.id);
+                },
+              ),
+            ),
             const SizedBox(height: 28.0),
             _sectionTitle('REQUEST BODY', theme),
             const SizedBox(height: 12.0),
@@ -64,10 +92,10 @@ class HttpAdvancedScreen extends ConsumerWidget {
                 Expanded(
                   child: DropdownWidget<int>(
                     label: 'RETRIES',
-                    initialValue: stateData.maxRetries,
+                    initialValue: state.maxRetries,
                     items: retryAttempts,
                     itemLabelBuilder: (v) => '$v Attempts',
-                    onChanged: (v) => notifier.updateRetryCount(v!),
+                    onChanged: (v) => notifier.updateRetries(v!),
                   ),
                 ),
                 const SizedBox(width: 12.0),
@@ -79,36 +107,16 @@ class HttpAdvancedScreen extends ConsumerWidget {
                 ),
               ],
             ),
-            const SizedBox(height: 12.0),
-            SwitchListTile(
-              contentPadding: const EdgeInsets.symmetric(horizontal: 4),
-              title: const Text(
-                'Auto-retry on 5xx errors',
-                style: TextStyle(fontSize: 13.0, fontWeight: FontWeight.w600),
-              ),
-              value: true,
-              activeThumbColor: theme.colorScheme.primary,
-              onChanged: (v) {},
-            ),
             const SizedBox(height: 32.0),
             ButtonWidget(
               label: 'EXECUTE REQUEST',
-              onPressed: notifier.runRequest,
-              isLoading: isLoading,
+              onPressed: () {},
+              isLoading: state.isLoading,
             ),
             const Padding(
               padding: EdgeInsets.symmetric(vertical: 32.0),
               child: Divider(),
             ),
-            if (isLoading)
-              _loadingState(theme)
-            else if (stateData.result.isNotEmpty)
-              ResponseSectionWidget(
-                duration: stateData.duration,
-                actualRetries: stateData.actualRetries,
-                body: stateData.result,
-                headers: stateData.headers,
-              ),
           ],
         ),
       ),
@@ -133,7 +141,7 @@ class HttpAdvancedScreen extends ConsumerWidget {
               fontSize: 10.0,
               fontWeight: FontWeight.bold,
             ),
-            tabs: const [
+            tabs: const <Tab>[
               Tab(text: 'JSON'),
               Tab(text: 'FORM-DATA'),
               Tab(text: 'RAW'),
@@ -152,7 +160,7 @@ class HttpAdvancedScreen extends ConsumerWidget {
                       fontSize: 12.0,
                     ),
                     decoration: InputDecoration(
-                      hintText: '{\n  "id": 1,\n  "name": "tester"\n}',
+                      hintText: '{\n "id": 1,\n "name": "tester"\n}',
                       hintStyle: TextStyle(
                         color: theme.colorScheme.onSurface.withAlpha(60),
                       ),
@@ -182,65 +190,13 @@ class HttpAdvancedScreen extends ConsumerWidget {
     );
   }
 
-  Widget _sectionHeader(
-    String title,
-    ThemeData theme, {
-    required VoidCallback onAdd,
-  }) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: <Widget>[
-        _sectionTitle(title, theme),
-        TextButton.icon(
-          onPressed: onAdd,
-          icon: const Icon(Icons.add, size: 14.0),
-          label: const Text(
-            'ADD',
-            style: TextStyle(fontSize: 10.0, fontWeight: FontWeight.bold),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _dynamicKeyValueRow(ThemeData theme, String k, String v) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8.0),
-      child: Row(
-        children: <Widget>[
-          Expanded(
-            child: TextFormField(
-              initialValue: k,
-              decoration: _inputStyle('KEY', theme),
-            ),
-          ),
-          const SizedBox(width: 8.0),
-          Expanded(
-            child: TextFormField(
-              initialValue: v,
-              decoration: _inputStyle('VALUE', theme),
-            ),
-          ),
-          IconButton(
-            onPressed: () {},
-            icon: Icon(
-              Icons.delete_outline,
-              size: 18.0,
-              color: theme.colorScheme.onSurface.withAlpha(100),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   InputDecoration _inputStyle(String label, ThemeData theme) {
     return InputDecoration(
       labelText: label,
       labelStyle: TextStyle(
+        color: theme.colorScheme.onSurface.withAlpha(150),
         fontSize: 9.0,
         fontWeight: FontWeight.w900,
-        color: theme.colorScheme.onSurface.withAlpha(150),
       ),
       filled: true,
       fillColor: theme.colorScheme.surfaceContainerHighest,
@@ -254,24 +210,119 @@ class HttpAdvancedScreen extends ConsumerWidget {
       ),
     );
   }
+}
 
-  Widget _loadingState(ThemeData theme) {
-    return Center(
-      child: Column(
-        children: <Widget>[
-          const SizedBox(height: 40.0),
-          CircularProgressIndicator(
-            color: theme.colorScheme.primary,
-            strokeWidth: 2.0,
+class _DynamicInputSection<T> extends StatelessWidget {
+  final String title;
+  final List<T> items;
+  final VoidCallback onAdd;
+  final Widget Function(T item, int index) itemBuilder;
+
+  const _DynamicInputSection({
+    required this.title,
+    required this.items,
+    required this.onAdd,
+    required this.itemBuilder,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: <Widget>[
+            Text(
+              title,
+              style: TextStyle(
+                color: theme.colorScheme.onSurface.withAlpha(128),
+                fontSize: 10.0,
+                fontWeight: FontWeight.w900,
+                letterSpacing: 1.1,
+              ),
+            ),
+            TextButton.icon(
+              onPressed: onAdd,
+              style: TextButton.styleFrom(visualDensity: VisualDensity.compact),
+              icon: const Icon(Icons.add, size: 14.0),
+              label: const Text(
+                'ADD',
+                style: TextStyle(fontSize: 10.0, fontWeight: FontWeight.bold),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8.0),
+        if (items.isEmpty)
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8.0),
+            child: Text(
+              'No items added.',
+              style: TextStyle(
+                color: theme.colorScheme.onSurface.withAlpha(80),
+                fontSize: 11.0,
+                fontStyle: FontStyle.italic,
+              ),
+            ),
+          )
+        else
+          ...List.generate(
+            items.length,
+            (index) => itemBuilder(items[index], index),
           ),
-          const SizedBox(height: 16.0),
-          Text(
-            'WAITING FOR RESPONSE...',
-            style: TextStyle(
-              fontSize: 10.0,
-              fontWeight: FontWeight.w900,
-              letterSpacing: 2.0,
-              color: theme.colorScheme.onSurface.withAlpha(153),
+      ],
+    );
+  }
+}
+
+class _DynamicKeyValueRow extends StatelessWidget {
+  final String initialKey;
+  final String initialValue;
+  final ValueChanged<String> onKeyChanged;
+  final ValueChanged<String> onValueChanged;
+  final VoidCallback onDelete;
+
+  const _DynamicKeyValueRow({
+    super.key,
+    required this.initialKey,
+    required this.initialValue,
+    required this.onKeyChanged,
+    required this.onValueChanged,
+    required this.onDelete,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8.0),
+      child: Row(
+        children: <Widget>[
+          Expanded(
+            child: InputFieldWidget(
+              initialValue: initialKey,
+              label: 'KEY',
+              onChanged: onKeyChanged,
+            ),
+          ),
+          const SizedBox(width: 8.0),
+          Expanded(
+            child: InputFieldWidget(
+              initialValue: initialValue,
+              label: 'VALUE',
+              onChanged: onValueChanged,
+            ),
+          ),
+          IconButton(
+            onPressed: onDelete,
+            icon: Icon(
+              Icons.delete_outline,
+              size: 18.0,
+              color: theme.colorScheme.error.withAlpha(180),
             ),
           ),
         ],
