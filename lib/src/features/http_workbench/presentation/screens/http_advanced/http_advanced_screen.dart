@@ -14,6 +14,7 @@ import 'package:flutter_http_architecture/src/features/http_workbench/presentati
 import 'package:flutter_http_architecture/src/shared/widgets/button_widget.dart';
 import 'package:flutter_http_architecture/src/shared/widgets/dropdown_widget.dart';
 import 'package:flutter_http_architecture/src/shared/widgets/input_field_widget.dart';
+import 'package:flutter_http_architecture/src/shared/widgets/states/loading_state_widget.dart';
 
 class HttpAdvancedScreen extends ConsumerStatefulWidget {
   const HttpAdvancedScreen({super.key});
@@ -231,10 +232,14 @@ class _ResponseArea extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (state.isLoading) return const _LoadingState();
+    if (state.isLoading) {
+      return const LoadingStateWidget();
+    }
 
     final data = state.value?.response;
-    if (data == null) return const SizedBox.shrink();
+    if (data == null) {
+      return const SizedBox.shrink();
+    }
 
     return ResponseSectionWidget(
       duration: '${data.context?.duration?.inMilliseconds ?? 0}ms',
@@ -261,34 +266,6 @@ class _SectionHeader extends StatelessWidget {
         fontSize: 10.0,
         fontWeight: FontWeight.w900,
         letterSpacing: 1.1,
-      ),
-    );
-  }
-}
-
-class _LoadingState extends StatelessWidget {
-  const _LoadingState();
-
-  @override
-  Widget build(BuildContext context) {
-    final color = Theme.of(context).colorScheme.onSurface.withAlpha(153);
-
-    return Center(
-      child: Column(
-        children: <Widget>[
-          const SizedBox(height: 40.0),
-          const CircularProgressIndicator(strokeWidth: 2.0),
-          const SizedBox(height: 16.0),
-          Text(
-            'WAITING FOR RESPONSE...',
-            style: TextStyle(
-              fontSize: 10.0,
-              fontWeight: FontWeight.w900,
-              letterSpacing: 2.0,
-              color: color,
-            ),
-          ),
-        ],
       ),
     );
   }

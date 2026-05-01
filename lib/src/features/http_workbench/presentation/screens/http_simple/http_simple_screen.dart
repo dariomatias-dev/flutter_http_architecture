@@ -9,6 +9,7 @@ import 'package:flutter_http_architecture/src/features/http_workbench/presentati
 
 import 'package:flutter_http_architecture/src/shared/widgets/button_widget.dart';
 import 'package:flutter_http_architecture/src/shared/widgets/dropdown_widget.dart';
+import 'package:flutter_http_architecture/src/shared/widgets/states/loading_state_widget.dart';
 
 class HttpSimpleScreen extends ConsumerWidget {
   const HttpSimpleScreen({super.key});
@@ -84,7 +85,7 @@ class HttpSimpleScreen extends ConsumerWidget {
             child: Divider(),
           ),
           if (isLoading)
-            _loadingState(theme)
+            LoadingStateWidget()
           else if (stateData.result.isNotEmpty)
             ResponseSectionWidget(
               duration: stateData.duration,
@@ -105,30 +106,6 @@ class HttpSimpleScreen extends ConsumerWidget {
         fontSize: 10.0,
         fontWeight: FontWeight.w900,
         letterSpacing: 1.1,
-      ),
-    );
-  }
-
-  Widget _loadingState(ThemeData theme) {
-    return Center(
-      child: Column(
-        children: <Widget>[
-          const SizedBox(height: 40.0),
-          CircularProgressIndicator(
-            color: theme.colorScheme.primary,
-            strokeWidth: 2.0,
-          ),
-          const SizedBox(height: 16.0),
-          Text(
-            'WAITING FOR RESPONSE...',
-            style: TextStyle(
-              fontSize: 10.0,
-              fontWeight: FontWeight.w900,
-              letterSpacing: 2.0,
-              color: theme.colorScheme.onSurface.withAlpha(153),
-            ),
-          ),
-        ],
       ),
     );
   }
