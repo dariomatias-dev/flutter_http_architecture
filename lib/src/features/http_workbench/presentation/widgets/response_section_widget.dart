@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 
 import 'package:flutter_http_architecture/src/shared/widgets/metric_tile_widget.dart';
@@ -47,12 +49,16 @@ class ResponseSectionWidget extends StatelessWidget {
         const SizedBox(height: 24.0),
         _sectionTitle('RESPONSE BODY', theme),
         const SizedBox(height: 12.0),
-        _codeBlock(body, theme.colorScheme.surfaceContainerHighest, theme),
+        _codeBlock(
+          _formatJson(body),
+          theme.colorScheme.surfaceContainerHighest,
+          theme,
+        ),
         const SizedBox(height: 24.0),
         _sectionTitle('HEADERS', theme),
         const SizedBox(height: 12.0),
         _codeBlock(
-          headers,
+          _formatJson(headers),
           theme.colorScheme.surfaceContainerHighest.withAlpha(179),
           theme,
         ),
@@ -91,5 +97,16 @@ class ResponseSectionWidget extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  String _formatJson(String input) {
+    try {
+      final decoded = json.decode(input);
+      const encoder = JsonEncoder.withIndent('  ');
+
+      return encoder.convert(decoded);
+    } catch (_) {
+      return input;
+    }
   }
 }
