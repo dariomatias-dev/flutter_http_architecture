@@ -1,20 +1,20 @@
 <div align="center">
-<img src="https://img.shields.io/badge/Flutter-02569B?style=for-the-badge&logo=flutter&logoColor=white" alt="Flutter">
-<img src="https://img.shields.io/badge/Dart-0175C2?style=for-the-badge&logo=dart&logoColor=white" alt="Dart">
-<img src="https://img.shields.io/badge/Dio-red?style=for-the-badge&logo=dart&logoColor=white" alt="Dio">
+  <img src="https://img.shields.io/badge/Flutter-02569B?style=for-the-badge&logo=flutter&logoColor=white" alt="Flutter">
+  <img src="https://img.shields.io/badge/Dart-0175C2?style=for-the-badge&logo=dart&logoColor=white" alt="Dart">
+  <img src="https://img.shields.io/badge/Dio-red?style=for-the-badge&logo=dart&logoColor=white" alt="Dio">
 </div>
 
 <p align="center">
-<strong>Idioma:</strong>
-Português | <a href="README.md">English</a>
+  <strong>Idioma:</strong>
+  Português | <a href="README.md">English</a>
 </p>
 
 <h1 align="center">Flutter HTTP Architecture</h1>
 
 <p align="center">
-Infraestrutura desacoplada para gerenciamento de requisições HTTP, baseada em contratos e tratamento semântico de erros.
-<br>
-<a href="#sobre-o-projeto"><strong>Explore a documentação »</strong></a>
+  Infraestrutura desacoplada para gerenciamento de requisições HTTP, baseada em contratos e tratamento semântico de erros.
+  <br>
+  <a href="#sobre-o-projeto"><strong>Explore a documentação »</strong></a>
 </p>
 
 ## Sumário
@@ -124,6 +124,7 @@ lib/
          ├─ config/
          │  └─ network_config.dart
          ├─ errors/
+         │  ├─ http_error_mapper.dart
          │  ├─ http_error.dart
          │  └─ http_error_type.dart
          ├─ executor/
@@ -169,10 +170,11 @@ Centraliza todas as configurações globais de rede da aplicação.
 
 ## errors
 
-Responsável por padronizar e categorizar erros HTTP de forma semântica.
+Responsável por padronizar, categorizar e normalizar erros HTTP de forma semântica.
 
 - `http_error.dart` → Modelo padrão de erro da requisição
 - `http_error_type.dart` → Tipos semânticos de erro HTTP
+- `http_error_mapper.dart` → Responsável por converter exceções do driver (ex: DioException) em `HttpError`
 
 ---
 
@@ -223,7 +225,7 @@ Define configurações específicas aplicadas por requisição HTTP.
 
 Responsável pelo controle de cancelamento de requisições.
 
-- `http_cancel_token.dart` → Abstração para cancelar requisições em andamento
+- `http_cancel_token.dart` → Abstração para cancelamento de requisições em andamento, **dependente da implementação do driver** (ex.: compatível com `DioCancelToken`, não totalmente agnóstica)
 
 ---
 
@@ -265,9 +267,11 @@ As requisições retornam o objeto `ApiResponse<T>`, em substituição ao lança
 
 4. **Tratamento de erros**: Se ocorrer uma falha, o erro técnico é convertido para o modelo padrão `HttpError`.
 
-5. **Retentativa (quando aplicável)**: O sistema verifica se o erro é recuperável (ex: falhas de conexão, timeout ou erros 5xx) e se a requisição pode ser repetida com segurança (baseado na idempotência do método HTTP ou na configuração `retryable`).
+5. **Retentativa (quando aplicável)**: O sistema verifica se o erro é recuperável (ex: falhas de conexão, timeout, HTTP 429 ou erros 5xx) e se a requisição pode ser repetida com segurança (com base na idempotência do método HTTP ou na configuração `retryable`).
 
-   Quando permitido, o `RequestExecutor` aplica uma estratégia de backoff exponencial entre tentativas, aumentando progressivamente o tempo de espera a cada falha (ex: 1s → 2s → 4s → 8s), até um limite máximo definido para evitar atrasos excessivos.
+   Quando permitido, o `RequestExecutor` aplica uma estratégia de backoff exponencial baseada no `retryDelay` configurado. O tempo de espera é multiplicado progressivamente a cada tentativa (ex: `baseDelay × 2ⁿ`), podendo resultar em sequências como 500ms → 1s → 2s → 4s, até um limite máximo definido para evitar atrasos excessivos.
+
+   Caso `retryDelay` seja `Duration.zero`, nenhuma espera é aplicada entre as tentativas.
 
    O objetivo dessa estratégia é reduzir a pressão sobre o servidor em cenários de instabilidade e aumentar a taxa de sucesso das requisições em falhas temporárias.
 
@@ -279,7 +283,11 @@ A arquitetura adota critérios técnicos baseados no padrão HTTP para assegurar
 
 - **Métodos Idempotentes**: Operações `GET`, `PUT`, `DELETE`, `HEAD` e `OPTIONS` são elegíveis para retentativa automática em cenários de falha de conexão ou erros de servidor (5xx).
 - **Métodos Não-Idempotentes**: Operações `POST` e `PATCH` não são repetidas automaticamente, prevenindo a duplicidade de transações sensíveis, exceto quando explicitamente autorizado via flag `retryable`.
-- **Gatilhos de recuperação**: A lógica de resiliência é acionada em falhas consideradas temporárias, como problemas de conexão, timeouts, excesso de requisições (HTTP 429) e erros internos do servidor (status 5xx). Quando um desses cenários ocorre, o sistema verifica se a requisição é elegível para retentativa antes de aplicar o mecanismo de retry.
+- **Gatilhos de recuperação**: A lógica de resiliência é acionada em falhas consideradas temporárias, como erros de conexão (`connectionError`), timeouts (`connectionTimeout`, `receiveTimeout`, `sendTimeout`), excesso de requisições (HTTP 429) e erros internos do servidor (status 5xx).
+
+  Quando um desses cenários ocorre, o sistema verifica se a requisição é elegível para retentativa com base na idempotência do método HTTP ou na flag `retryable`. Requisições canceladas (`cancel`) não são elegíveis para retry.
+
+  Se permitido, o mecanismo de retry é aplicado respeitando o número máximo de tentativas e a estratégia de delay configurada.
 
 ## Funcionalidades Avançadas
 
@@ -313,7 +321,7 @@ Registrado no momento do disparo da chamada, incluindo o contexto inicial e os d
 
 #### Exemplo de Log de Resposta (Response)
 
-Registrado após o recebimento dos dados do servidor, incluindo tempo total de execução, status final e dados sensíveis protegidos.
+Registrado após o recebimento dos dados do servidor, incluindo tempo total de execução, status final e dados sensíveis mascaradas.
 
 ```text
 ┌──────────── HTTP RESPONSE ─────────────
@@ -362,27 +370,160 @@ Registrado em casos de falha técnica ou de protocolo, exibindo o diagnóstico d
 
 ## Exemplos de Implementação
 
-### Inicialização e Configuração Global
+### Configuração do Cliente HTTP
 
 ```dart
-final config = NetworkConfig(
-  baseUrl: 'https://api.dominio.com',
-  connectTimeout: Duration(seconds: 15),
+final httpClient = DioHttpClient(
+  config: NetworkConfig(
+    baseUrl: 'https://jsonplaceholder.typicode.com',
+    connectTimeout: Duration(seconds: 15),
+    receiveTimeout: Duration(seconds: 15),
+    defaultHeaders: {
+      'Content-Type': 'application/json',
+    },
+  ),
 );
-
-final client = DioHttpClient(config: config);
 ```
 
-### Execução de Requisição GET com Monitoramento
+---
+
+### Requisição GET
 
 ```dart
-final response = await client.get<Map<String, dynamic>>('/v1/perfil');
+final response = await httpClient.get<List<dynamic>>(
+  '/posts',
+);
 
 if (response.isSuccess) {
-  print('Payload: ${response.data}');
-  print('Tempo de execução: ${response.context?.duration?.inMilliseconds}ms');
+  final posts = response.data;
 } else {
-  print('Erro: ${response.error?.message}');
+  final error = response.error;
+}
+```
+
+---
+
+### Requisição GET com Parâmetros
+
+```dart
+final response = await httpClient.get<List<dynamic>>(
+  '/comments',
+  queryParameters: {'postId': 1},
+);
+
+if (response.isSuccess) {
+  final comments = response.data;
+} else {
+  final error = response.error;
+}
+```
+
+---
+
+### Requisição POST
+
+```dart
+final response = await httpClient.post<Map<String, dynamic>>(
+  '/posts',
+  data: {
+    'title': 'foo',
+    'body': 'bar',
+    'userId': 1,
+  },
+);
+
+if (response.isSuccess) {
+  final createdPost = response.data;
+} else {
+  final error = response.error;
+}
+```
+
+---
+
+### Requisição com Retry
+
+```dart
+final response = await httpClient.get<List<dynamic>>(
+  '/posts',
+  options: HttpRequestOptions(
+    maxRetries: 2,
+    retryDelay: Duration(milliseconds: 300),
+  ),
+);
+```
+
+---
+
+### Upload Multipart
+
+```dart
+final multipart = await MultipartHelper.fromMap({
+  'file': File('/path/to/file.png'),
+});
+
+final response = await httpClient.post<Map<String, dynamic>>(
+  '/posts',
+  data: multipart,
+  onSendProgress: (sent, total) {
+    final progress = sent / total;
+  },
+);
+```
+
+---
+
+### Cancelamento de Requisição
+
+```dart
+final cancelToken = DioCancelToken();
+
+final future = httpClient.get<List<dynamic>>(
+  '/posts',
+  cancelToken: cancelToken,
+);
+
+cancelToken.cancel();
+
+final response = await future;
+```
+
+---
+
+### Uso em Repositório
+
+```dart
+class PostRepository {
+  final HttpClient client;
+
+  PostRepository(this.client);
+
+  Future<ApiResponse<List<dynamic>?>> getPosts() {
+    return client.get('/posts');
+  }
+}
+```
+
+---
+
+### Tratamento de Erros
+
+```dart
+final response = await httpClient.get('/posts');
+
+if (!response.isSuccess) {
+  switch (response.error?.type) {
+    case HttpErrorType.network:
+      break;
+    case HttpErrorType.timeout:
+      break;
+    case HttpErrorType.unauthorized:
+      break;
+    case HttpErrorType.server:
+      break;
+    default:
+      break;
+  }
 }
 ```
 
