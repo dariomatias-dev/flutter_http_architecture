@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:logger/logger.dart';
 
+import 'package:flutter_http_architecture/src/core/http/errors/http_error_mapper.dart';
 import 'package:flutter_http_architecture/src/core/http/executor/request_context.dart';
 import 'package:flutter_http_architecture/src/core/http/utils/log_sanitizer.dart';
 
@@ -39,14 +40,11 @@ class LoggingInterceptor extends Interceptor {
     final buffer = StringBuffer();
 
     buffer.writeln('┌───────────── HTTP REQUEST ─────────────');
-
     buffer.writeln('│ ▶ REQUEST');
     buffer.writeln('│   ${options.method} ${options.uri}');
-
     buffer.writeln('│');
     buffer.writeln('│ ▶ CONTEXT');
     buffer.writeln('│   ${_formatContext(context)}');
-
     buffer.writeln('│');
     buffer.writeln('│ ▶ HEADERS');
     buffer.writeln('│   ${LogSanitizer.sanitize(options.headers)}');
@@ -83,7 +81,6 @@ class LoggingInterceptor extends Interceptor {
     final buffer = StringBuffer();
 
     buffer.writeln('┌──────────── HTTP RESPONSE ─────────────');
-
     buffer.writeln('│ ▶ RESPONSE');
     buffer.writeln(
       '│   ${response.requestOptions.method} ${response.requestOptions.uri}',
@@ -127,12 +124,12 @@ class LoggingInterceptor extends Interceptor {
     if (context != null) {
       context.statusCode = err.response?.statusCode;
       context.duration = DateTime.now().difference(context.startTime);
+      context.error = HttpErrorMapper.map(err);
     }
 
     final buffer = StringBuffer();
 
     buffer.writeln('┌───────────── HTTP ERROR ──────────────');
-
     buffer.writeln('│ ▶ REQUEST');
     buffer.writeln(
       '│   ${err.requestOptions.method} ${err.requestOptions.uri}',
