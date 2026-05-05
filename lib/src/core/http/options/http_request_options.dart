@@ -20,7 +20,7 @@ class HttpRequestOptions {
   });
 
   HttpRequestOptions copyWith({
-    Map<String, String>? headers,
+    Map<String, dynamic>? headers,
     Duration? sendTimeout,
     Duration? receiveTimeout,
     String? contentType,

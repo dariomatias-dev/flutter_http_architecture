@@ -13,8 +13,8 @@ class HttpAdvancedNotifier extends AsyncNotifier<HttpAdvancedState> {
     required String method,
     required String url,
     required String body,
-    required List<Map<String, String>> headers,
-    required List<Map<String, String>> queryParams,
+    required List<Map<String, dynamic>> headers,
+    required List<Map<String, dynamic>> queryParams,
   }) async {
     final currentData = state.value ?? HttpAdvancedState.initial();
 

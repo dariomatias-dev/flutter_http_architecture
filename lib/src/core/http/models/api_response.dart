@@ -16,5 +16,6 @@ class ApiResponse<T> {
     this.context,
   });
 
-  bool get isSuccess => error == null && (statusCode ?? 0) < 400;
+  bool get isSuccess =>
+      error == null && statusCode != null && statusCode! < 400;
 }
