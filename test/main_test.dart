@@ -11,11 +11,4 @@ void main() {
 
     expect(find.byType(MaterialApp), findsOneWidget);
   });
-
-  testWidgets('AppWidget loads initial screen correctly', (tester) async {
-    await tester.pumpWidget(const ProviderScope(child: AppWidget()));
-    await tester.pump();
-
-    expect(find.byType(MaterialApp), findsOneWidget);
-  });
 }
