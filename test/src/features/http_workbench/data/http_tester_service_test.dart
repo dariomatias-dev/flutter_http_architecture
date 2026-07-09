@@ -76,4 +76,64 @@ void main() {
     expect(result.data, 'options');
     expect(client.lastMethod, 'OPTIONS');
   });
+
+  test('unknown method falls back to client.get', () async {
+    final client = SpyHttpClient();
+    final service = HttpTesterService(client);
+
+    final result = await service.executeRequest(
+      method: 'FOO',
+      statusCode: 200,
+    );
+
+    expect(result.data, 'get');
+    expect(client.lastMethod, 'GET');
+  });
+
+  test('method is case-insensitive', () async {
+    final client = SpyHttpClient();
+    final service = HttpTesterService(client);
+
+    await service.executeRequest(method: 'post', statusCode: 200);
+
+    expect(client.lastMethod, 'POST');
+  });
+
+  test('builds path from status code', () async {
+    final client = SpyHttpClient();
+    final service = HttpTesterService(client);
+
+    await service.executeRequest(method: 'GET', statusCode: 404);
+
+    expect(client.lastPath, '/status/404');
+  });
+
+  test('forwards retry options and query parameters', () async {
+    final client = SpyHttpClient();
+    final service = HttpTesterService(client);
+
+    await service.executeRequest(
+      method: 'GET',
+      statusCode: 200,
+      maxRetries: 3,
+      queryParameters: {'q': 'value'},
+    );
+
+    expect(client.lastOptions?.maxRetries, 3);
+    expect(client.lastOptions?.retryable, true);
+    expect(client.lastQueryParameters, {'q': 'value'});
+  });
+
+  test('forwards body data on write methods', () async {
+    final client = SpyHttpClient();
+    final service = HttpTesterService(client);
+
+    await service.executeRequest(
+      method: 'POST',
+      statusCode: 200,
+      data: {'name': 'test'},
+    );
+
+    expect(client.lastData, {'name': 'test'});
+  });
 }
