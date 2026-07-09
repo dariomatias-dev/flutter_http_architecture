@@ -13,6 +13,29 @@ class LogSanitizer {
     'auth',
   };
 
+  static List<String> _splitWords(String key) {
+    final words = <String>[];
+    final buffer = StringBuffer();
+
+    for (final unit in key.codeUnits) {
+      final isAlphaNumeric =
+          (unit >= 0x30 && unit <= 0x39) || (unit >= 0x61 && unit <= 0x7a);
+
+      if (isAlphaNumeric) {
+        buffer.writeCharCode(unit);
+      } else if (buffer.isNotEmpty) {
+        words.add(buffer.toString());
+        buffer.clear();
+      }
+    }
+
+    if (buffer.isNotEmpty) {
+      words.add(buffer.toString());
+    }
+
+    return words;
+  }
+
   static dynamic sanitize(dynamic value) {
     if (value is Map) {
       final result = <String, dynamic>{};
@@ -21,7 +44,7 @@ class LogSanitizer {
         final safeKey = key.toString();
         final lowerKey = safeKey.toLowerCase();
 
-        final words = lowerKey.split(RegExp(r'[^a-z0-9]+'));
+        final words = _splitWords(lowerKey);
         final isSensitive = _sensitiveKeys.any(
           (k) => lowerKey == k || words.contains(k),
         );

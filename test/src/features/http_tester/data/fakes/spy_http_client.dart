@@ -3,6 +3,7 @@ import 'package:flutter_http_architecture/src/core/http/models/api_response.dart
 
 class SpyHttpClient implements HttpClient {
   String? lastMethod;
+  bool closed = false;
 
   @override
   Future<ApiResponse<T?>> get<T>(
@@ -79,5 +80,10 @@ class SpyHttpClient implements HttpClient {
   }) async {
     lastMethod = 'OPTIONS';
     return ApiResponse(data: 'options' as T, statusCode: 200);
+  }
+
+  @override
+  void close({bool force = false}) {
+    closed = true;
   }
 }

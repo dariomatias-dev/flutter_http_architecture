@@ -7,8 +7,7 @@ import 'package:flutter_http_architecture/src/core/http/executor/request_executo
 import 'package:flutter_http_architecture/src/core/http/interceptors/logging_interceptor.dart';
 import 'package:flutter_http_architecture/src/core/http/models/api_response.dart';
 import 'package:flutter_http_architecture/src/core/http/options/http_request_options.dart';
-import 'package:flutter_http_architecture/src/core/http/tokens/http_cancel_token.dart';
-import 'package:flutter_http_architecture/src/core/http/types/progress_callback_http.dart';
+import 'package:flutter_http_architecture/src/core/http/types/http_types.dart';
 import 'package:flutter_http_architecture/src/core/http/multipart/http_multipart.dart';
 
 class DioCancelToken implements HttpCancelToken {
@@ -221,5 +220,10 @@ class DioHttpClient implements HttpClient {
       options: options,
       cancelToken: cancelToken,
     );
+  }
+
+  @override
+  void close({bool force = false}) {
+    _dio.close(force: force);
   }
 }

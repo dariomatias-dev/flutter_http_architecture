@@ -82,4 +82,7 @@ class FakeHttpClient implements HttpClient {
   }) async {
     return _build('OPTIONS', path) as ApiResponse<T?>;
   }
+
+  @override
+  void close({bool force = false}) {}
 }
