@@ -6,15 +6,19 @@ import 'package:flutter_http_architecture/src/features/http_workbench/di/http_wo
 import 'package:flutter_http_architecture/src/features/http_workbench/presentation/screens/http_simple/http_simple_screen.dart';
 import 'package:flutter_http_architecture/src/features/http_workbench/presentation/viewmodels/http_simple_view_state.dart';
 
-import '../../../data/fakes/fake_http_tester_notifier.dart';
+import '../../../data/fakes/fake_http_simple_notifier.dart';
 
 void main() {
   Widget createWidget(HttpSimpleViewState state) {
     return ProviderScope(
       overrides: [
-        httpSimpleNotifierProvider.overrideWith(FakeHttpTesterNotifier.new),
+        httpSimpleNotifierProvider.overrideWith(
+          () => FakeHttpSimpleNotifier(state),
+        ),
       ],
-      child: const MaterialApp(home: HttpSimpleScreen()),
+      child: const MaterialApp(
+        home: Scaffold(body: HttpSimpleScreen()),
+      ),
     );
   }
 
@@ -23,8 +27,10 @@ void main() {
 
     expect(find.text('REQUEST CONFIGURATION'), findsOneWidget);
     expect(find.text('EXECUTE REQUEST'), findsOneWidget);
-    expect(find.byType(DropdownButtonFormField), findsWidgets);
-    expect(find.byType(TextFormField), findsOneWidget);
+    // Method, status and max-retries selectors.
+    expect(find.text('METHOD'), findsOneWidget);
+    expect(find.text('STATUS'), findsOneWidget);
+    expect(find.text('MAX RETRIES'), findsOneWidget);
   });
 
   testWidgets('displays response section when result is not empty', (
