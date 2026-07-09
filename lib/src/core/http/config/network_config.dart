@@ -18,7 +18,7 @@ class NetworkConfig {
     Map<String, dynamic>? defaultHeaders,
   }) {
     return NetworkConfig(
-      baseUrl: baseUrl,
+      baseUrl: baseUrl ?? this.baseUrl,
       connectTimeout: connectTimeout ?? this.connectTimeout,
       receiveTimeout: receiveTimeout ?? this.receiveTimeout,
       defaultHeaders: defaultHeaders ?? this.defaultHeaders,

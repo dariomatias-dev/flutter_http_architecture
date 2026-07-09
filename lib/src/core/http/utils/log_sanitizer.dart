@@ -21,8 +21,9 @@ class LogSanitizer {
         final safeKey = key.toString();
         final lowerKey = safeKey.toLowerCase();
 
+        final words = lowerKey.split(RegExp(r'[^a-z0-9]+'));
         final isSensitive = _sensitiveKeys.any(
-          (k) => lowerKey == k || lowerKey.contains(k),
+          (k) => lowerKey == k || words.contains(k),
         );
 
         result[safeKey] = isSensitive ? '***' : sanitize(val);
