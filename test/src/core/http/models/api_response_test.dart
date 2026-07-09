@@ -26,4 +26,22 @@ void main() {
 
     expect(response.isSuccess, false);
   });
+
+  test('isSuccess returns false when statusCode is null', () {
+    final response = ApiResponse<String>(data: 'ok');
+
+    expect(response.isSuccess, false);
+  });
+
+  test('isSuccess returns true at boundary 399', () {
+    final response = ApiResponse<String>(data: 'ok', statusCode: 399);
+
+    expect(response.isSuccess, true);
+  });
+
+  test('isSuccess returns false at boundary 400', () {
+    final response = ApiResponse<String>(data: 'ok', statusCode: 400);
+
+    expect(response.isSuccess, false);
+  });
 }
